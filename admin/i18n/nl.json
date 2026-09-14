@@ -18,6 +18,7 @@
     "Loaded live from the configured Prometheus server": "Live geladen vanaf de geconfigureerde Prometheus-server",
     "Maximum": "Maximaal",
     "Metric": "Metrisch",
+    "Metric overview": "Metrisch overzicht",
     "Minimum": "Minimum",
     "Name": "Naam",
     "One state per label value combination is created": "Er wordt één status per labelwaardecombinatie gemaakt",

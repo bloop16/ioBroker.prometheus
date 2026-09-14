@@ -28,6 +28,9 @@ var import_source_config = require("./lib/source-config");
 const DEFAULT_REQUEST_TIMEOUT_SEC = 10;
 const MAX_DROPDOWN_ENTRIES = 2e3;
 const MAX_STARTUP_JITTER_MS = 5e3;
+function escapeHtml(value) {
+  return value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
 class Prometheus extends utils.Adapter {
   pollIntervals = [];
   startupTimeouts = [];
@@ -264,15 +267,20 @@ class Prometheus extends utils.Adapter {
         case "getMetricNames":
           this.respond(obj, await this.listForDropdown(message, (client) => client.metricNames()));
           break;
-        case "getLabels":
-          this.respond(
-            obj,
-            await this.listForDropdown(message, (client) => {
+        case "getLabels": {
+          const options = await this.listForDropdown(
+            message,
+            (client) => {
               var _a;
               return client.labelNames((_a = message.metric) == null ? void 0 : _a.trim());
-            })
+            }
           );
+          if (message.withEmpty) {
+            options.unshift({ label: "\u2014 no filter \u2014", value: "" });
+          }
+          this.respond(obj, options);
           break;
+        }
         case "getLabelValues":
           this.respond(
             obj,
@@ -288,6 +296,9 @@ class Prometheus extends utils.Adapter {
         case "previewQuery":
           this.respond(obj, await this.previewQuery(message));
           break;
+        case "describeMetric":
+          this.respond(obj, await this.describeMetric(message));
+          break;
         default:
           this.log.warn(`Unknown command: ${obj.command}`);
           this.respond(obj, { error: `Unknown command: ${obj.command}` });
@@ -295,7 +306,7 @@ class Prometheus extends utils.Adapter {
     } catch (error) {
       const text = this.errorText(error);
       this.log.warn(`Command ${obj.command} failed: ${text}`);
-      if (obj.command === "previewQuery") {
+      if (obj.command === "previewQuery" || obj.command === "describeMetric") {
         this.respond(obj, { text: `Error: ${text}` });
       } else if (obj.command === "testConnection") {
         this.respond(obj, { error: text });
@@ -325,6 +336,49 @@ class Prometheus extends utils.Adapter {
     }
     const values = await fetch(client);
     return values.sort((a, b) => a.localeCompare(b)).slice(0, MAX_DROPDOWN_ENTRIES).map((value) => ({ label: value, value }));
+  }
+  /**
+   * Renders a live overview of the selected metric (series count, labels
+   * and their values) so the user can build filters without guessing.
+   *
+   * @param message - Payload of the Admin UI request
+   */
+  async describeMetric(message) {
+    var _a;
+    const metric = (_a = message.metric) == null ? void 0 : _a.trim();
+    const client = this.clientForUrl(message.url);
+    if (!client || !metric || !(0, import_query_builder.isValidMetricName)(metric)) {
+      return { text: "" };
+    }
+    const samples = await client.instantQuery(metric);
+    if (samples.length === 0) {
+      return { text: `<b>${escapeHtml(metric)}</b>: no active series right now` };
+    }
+    const maxSeries = 500;
+    const maxValues = 8;
+    const labelValues = /* @__PURE__ */ new Map();
+    for (const sample of samples.slice(0, maxSeries)) {
+      for (const [label, value] of Object.entries(sample.labels)) {
+        if (label === "__name__") {
+          continue;
+        }
+        let values = labelValues.get(label);
+        if (!values) {
+          values = /* @__PURE__ */ new Set();
+          labelValues.set(label, values);
+        }
+        values.add(value);
+      }
+    }
+    const rows = [...labelValues.entries()].sort(([a], [b]) => a.localeCompare(b)).map(([label, values]) => {
+      const list = [...values].slice(0, maxValues).map(escapeHtml).join(", ");
+      const more = values.size > maxValues ? ` \u2026 (+${values.size - maxValues} more)` : "";
+      return `<tr><td style="padding:2px 12px 2px 0;vertical-align:top"><b>${escapeHtml(label)}</b></td><td>${list}${more}</td></tr>`;
+    }).join("");
+    const truncated = samples.length > maxSeries ? ` (labels from first ${maxSeries})` : "";
+    return {
+      text: `<div style="font-size:0.9em"><b>${escapeHtml(metric)}</b>: ${samples.length} series${truncated}, current value e.g. ${samples[0].value}<table style="margin-top:4px">${rows}</table></div>`
+    };
   }
   /**
    * Builds the PromQL query from the (possibly unsaved) row data and runs it once

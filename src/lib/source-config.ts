@@ -147,8 +147,13 @@ export function collectFilters(raw: RawSourceConfig): QueryFilter[] {
     const filters: QueryFilter[] = [];
     for (let slot = 1; slot <= FILTER_SLOT_COUNT; slot++) {
         const label = (raw[`filter${slot}Label` as keyof RawSourceConfig] as string | undefined)?.trim();
+        if (!label) {
+            // a cleared slot hides all following slots in the Admin UI,
+            // so any leftover data in them must not become filters
+            break;
+        }
         const value = raw[`filter${slot}Value` as keyof RawSourceConfig] as string | undefined;
-        if (label && value !== undefined && value !== "") {
+        if (value !== undefined && value !== "") {
             filters.push({ label, value });
         }
     }

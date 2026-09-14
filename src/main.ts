@@ -6,7 +6,7 @@
 // you need to create an adapter
 import * as utils from "@iobroker/adapter-core";
 
-import { AGGREGATIONS, buildQuery, type Aggregation } from "./lib/query-builder";
+import { AGGREGATIONS, buildQuery, isValidMetricName, type Aggregation } from "./lib/query-builder";
 import { PrometheusClient, type PromSample } from "./lib/prometheus-client";
 import {
     cleanAdminValue,
@@ -24,6 +24,10 @@ const DEFAULT_REQUEST_TIMEOUT_SEC = 10;
 const MAX_DROPDOWN_ENTRIES = 2000;
 /** Maximum random startup delay so many instances do not poll in lockstep */
 const MAX_STARTUP_JITTER_MS = 5000;
+
+function escapeHtml(value: string): string {
+    return value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
 
 interface PollingSource {
     source: NormalizedSource;
@@ -281,12 +285,17 @@ class Prometheus extends utils.Adapter {
                 case "getMetricNames":
                     this.respond(obj, await this.listForDropdown(message, client => client.metricNames()));
                     break;
-                case "getLabels":
-                    this.respond(
-                        obj,
-                        await this.listForDropdown(message, client => client.labelNames(message.metric?.trim())),
+                case "getLabels": {
+                    const options = await this.listForDropdown(message, client =>
+                        client.labelNames(message.metric?.trim()),
                     );
+                    if (message.withEmpty) {
+                        // allows clearing a previously selected filter label
+                        options.unshift({ label: "— no filter —", value: "" });
+                    }
+                    this.respond(obj, options);
                     break;
+                }
                 case "getLabelValues":
                     this.respond(
                         obj,
@@ -298,6 +307,9 @@ class Prometheus extends utils.Adapter {
                 case "previewQuery":
                     this.respond(obj, await this.previewQuery(message));
                     break;
+                case "describeMetric":
+                    this.respond(obj, await this.describeMetric(message));
+                    break;
                 default:
                     this.log.warn(`Unknown command: ${obj.command}`);
                     this.respond(obj, { error: `Unknown command: ${obj.command}` });
@@ -306,7 +318,7 @@ class Prometheus extends utils.Adapter {
             const text = this.errorText(error);
             this.log.warn(`Command ${obj.command} failed: ${text}`);
             // Dropdown commands expect an array, the other commands expect an object
-            if (obj.command === "previewQuery") {
+            if (obj.command === "previewQuery" || obj.command === "describeMetric") {
                 this.respond(obj, { text: `Error: ${text}` });
             } else if (obj.command === "testConnection") {
                 this.respond(obj, { error: text });
@@ -345,6 +357,57 @@ class Prometheus extends utils.Adapter {
             .sort((a, b) => a.localeCompare(b))
             .slice(0, MAX_DROPDOWN_ENTRIES)
             .map(value => ({ label: value, value }));
+    }
+
+    /**
+     * Renders a live overview of the selected metric (series count, labels
+     * and their values) so the user can build filters without guessing.
+     *
+     * @param message - Payload of the Admin UI request
+     */
+    private async describeMetric(message: Record<string, string>): Promise<{ text: string }> {
+        const metric = message.metric?.trim();
+        const client = this.clientForUrl(message.url);
+        if (!client || !metric || !isValidMetricName(metric)) {
+            return { text: "" };
+        }
+
+        const samples = await client.instantQuery(metric);
+        if (samples.length === 0) {
+            return { text: `<b>${escapeHtml(metric)}</b>: no active series right now` };
+        }
+
+        const maxSeries = 500;
+        const maxValues = 8;
+        const labelValues = new Map<string, Set<string>>();
+        for (const sample of samples.slice(0, maxSeries)) {
+            for (const [label, value] of Object.entries(sample.labels)) {
+                if (label === "__name__") {
+                    continue;
+                }
+                let values = labelValues.get(label);
+                if (!values) {
+                    values = new Set<string>();
+                    labelValues.set(label, values);
+                }
+                values.add(value);
+            }
+        }
+
+        const rows = [...labelValues.entries()]
+            .sort(([a], [b]) => a.localeCompare(b))
+            .map(([label, values]) => {
+                const list = [...values].slice(0, maxValues).map(escapeHtml).join(", ");
+                const more = values.size > maxValues ? ` … (+${values.size - maxValues} more)` : "";
+                return `<tr><td style="padding:2px 12px 2px 0;vertical-align:top"><b>${escapeHtml(label)}</b></td><td>${list}${more}</td></tr>`;
+            })
+            .join("");
+        const truncated = samples.length > maxSeries ? ` (labels from first ${maxSeries})` : "";
+        return {
+            text:
+                `<div style="font-size:0.9em"><b>${escapeHtml(metric)}</b>: ${samples.length} series${truncated}, ` +
+                `current value e.g. ${samples[0].value}<table style="margin-top:4px">${rows}</table></div>`,
+        };
     }
 
     /**

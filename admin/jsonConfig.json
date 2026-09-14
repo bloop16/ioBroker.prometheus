@@ -171,18 +171,34 @@
                 },
                 {
                     "attr": "metric",
-                    "type": "selectSendTo",
+                    "type": "autocompleteSendTo",
                     "label": "Metric",
                     "command": "getMetricNames",
-                    "manual": false,
-                    "noTranslation": true,
                     "help": "Loaded live from the configured Prometheus server",
                     "xs": 12,
                     "sm": 12,
                     "md": 6,
                     "lg": 4,
                     "xl": 4,
-                    "jsonData": "{\"url\": \"${globalData.url}\"}"
+                    "jsonData": "{\"url\": \"${globalData.url}\"}",
+                    "freeSolo": false
+                },
+                {
+                    "attr": "_metricInfo",
+                    "type": "textSendTo",
+                    "label": "Metric overview",
+                    "command": "describeMetric",
+                    "container": "html",
+                    "jsonData": "{\"metric\": \"${data.metric}\", \"url\": \"${globalData.url}\"}",
+                    "alsoDependsOn": [
+                        "metric"
+                    ],
+                    "xs": 12,
+                    "sm": 12,
+                    "md": 12,
+                    "lg": 12,
+                    "xl": 12,
+                    "newLine": true
                 },
                 {
                     "attr": "aggregation",
@@ -260,7 +276,7 @@
                     "type": "selectSendTo",
                     "label": "Filter label",
                     "command": "getLabels",
-                    "jsonData": "{\"metric\": \"${data.metric}\", \"url\": \"${globalData.url}\"}",
+                    "jsonData": "{\"metric\": \"${data.metric}\", \"url\": \"${globalData.url}\", \"withEmpty\": \"1\"}",
                     "alsoDependsOn": [
                         "metric"
                     ],
@@ -275,7 +291,7 @@
                 },
                 {
                     "attr": "filter1Value",
-                    "type": "selectSendTo",
+                    "type": "autocompleteSendTo",
                     "label": "Filter value",
                     "command": "getLabelValues",
                     "jsonData": "{\"metric\": \"${data.metric}\", \"label\": \"${data.filter1Label}\", \"url\": \"${globalData.url}\"}",
@@ -283,22 +299,21 @@
                         "metric",
                         "filter1Label"
                     ],
-                    "manual": false,
-                    "noTranslation": true,
                     "hidden": "!data.filter1Label",
                     "help": "Only series with this label value are included",
                     "xs": 12,
                     "sm": 12,
                     "md": 6,
                     "lg": 3,
-                    "xl": 3
+                    "xl": 3,
+                    "freeSolo": false
                 },
                 {
                     "attr": "filter2Label",
                     "type": "selectSendTo",
                     "label": "Filter label",
                     "command": "getLabels",
-                    "jsonData": "{\"metric\": \"${data.metric}\", \"url\": \"${globalData.url}\"}",
+                    "jsonData": "{\"metric\": \"${data.metric}\", \"url\": \"${globalData.url}\", \"withEmpty\": \"1\"}",
                     "alsoDependsOn": [
                         "metric",
                         "filter1Label"
@@ -315,7 +330,7 @@
                 },
                 {
                     "attr": "filter2Value",
-                    "type": "selectSendTo",
+                    "type": "autocompleteSendTo",
                     "label": "Filter value",
                     "command": "getLabelValues",
                     "jsonData": "{\"metric\": \"${data.metric}\", \"label\": \"${data.filter2Label}\", \"url\": \"${globalData.url}\"}",
@@ -323,22 +338,21 @@
                         "metric",
                         "filter2Label"
                     ],
-                    "manual": false,
-                    "noTranslation": true,
                     "hidden": "!data.filter2Label",
                     "help": "Only series with this label value are included",
                     "xs": 12,
                     "sm": 12,
                     "md": 6,
                     "lg": 3,
-                    "xl": 3
+                    "xl": 3,
+                    "freeSolo": false
                 },
                 {
                     "attr": "filter3Label",
                     "type": "selectSendTo",
                     "label": "Filter label",
                     "command": "getLabels",
-                    "jsonData": "{\"metric\": \"${data.metric}\", \"url\": \"${globalData.url}\"}",
+                    "jsonData": "{\"metric\": \"${data.metric}\", \"url\": \"${globalData.url}\", \"withEmpty\": \"1\"}",
                     "alsoDependsOn": [
                         "metric",
                         "filter2Label"
@@ -355,7 +369,7 @@
                 },
                 {
                     "attr": "filter3Value",
-                    "type": "selectSendTo",
+                    "type": "autocompleteSendTo",
                     "label": "Filter value",
                     "command": "getLabelValues",
                     "jsonData": "{\"metric\": \"${data.metric}\", \"label\": \"${data.filter3Label}\", \"url\": \"${globalData.url}\"}",
@@ -363,22 +377,21 @@
                         "metric",
                         "filter3Label"
                     ],
-                    "manual": false,
-                    "noTranslation": true,
                     "hidden": "!data.filter3Label",
                     "help": "Only series with this label value are included",
                     "xs": 12,
                     "sm": 12,
                     "md": 6,
                     "lg": 3,
-                    "xl": 3
+                    "xl": 3,
+                    "freeSolo": false
                 },
                 {
                     "attr": "filter4Label",
                     "type": "selectSendTo",
                     "label": "Filter label",
                     "command": "getLabels",
-                    "jsonData": "{\"metric\": \"${data.metric}\", \"url\": \"${globalData.url}\"}",
+                    "jsonData": "{\"metric\": \"${data.metric}\", \"url\": \"${globalData.url}\", \"withEmpty\": \"1\"}",
                     "alsoDependsOn": [
                         "metric",
                         "filter3Label"
@@ -395,7 +408,7 @@
                 },
                 {
                     "attr": "filter4Value",
-                    "type": "selectSendTo",
+                    "type": "autocompleteSendTo",
                     "label": "Filter value",
                     "command": "getLabelValues",
                     "jsonData": "{\"metric\": \"${data.metric}\", \"label\": \"${data.filter4Label}\", \"url\": \"${globalData.url}\"}",
@@ -403,22 +416,21 @@
                         "metric",
                         "filter4Label"
                     ],
-                    "manual": false,
-                    "noTranslation": true,
                     "hidden": "!data.filter4Label",
                     "help": "Only series with this label value are included",
                     "xs": 12,
                     "sm": 12,
                     "md": 6,
                     "lg": 3,
-                    "xl": 3
+                    "xl": 3,
+                    "freeSolo": false
                 },
                 {
                     "attr": "filter5Label",
                     "type": "selectSendTo",
                     "label": "Filter label",
                     "command": "getLabels",
-                    "jsonData": "{\"metric\": \"${data.metric}\", \"url\": \"${globalData.url}\"}",
+                    "jsonData": "{\"metric\": \"${data.metric}\", \"url\": \"${globalData.url}\", \"withEmpty\": \"1\"}",
                     "alsoDependsOn": [
                         "metric",
                         "filter4Label"
@@ -435,7 +447,7 @@
                 },
                 {
                     "attr": "filter5Value",
-                    "type": "selectSendTo",
+                    "type": "autocompleteSendTo",
                     "label": "Filter value",
                     "command": "getLabelValues",
                     "jsonData": "{\"metric\": \"${data.metric}\", \"label\": \"${data.filter5Label}\", \"url\": \"${globalData.url}\"}",
@@ -443,15 +455,14 @@
                         "metric",
                         "filter5Label"
                     ],
-                    "manual": false,
-                    "noTranslation": true,
                     "hidden": "!data.filter5Label",
                     "help": "Only series with this label value are included",
                     "xs": 12,
                     "sm": 12,
                     "md": 6,
                     "lg": 3,
-                    "xl": 3
+                    "xl": 3,
+                    "freeSolo": false
                 },
                 {
                     "attr": "preview",

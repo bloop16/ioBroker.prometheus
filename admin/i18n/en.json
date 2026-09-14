@@ -36,5 +36,6 @@
     "Filter value": "Filter value",
     "Only series with this label value are included": "Only series with this label value are included",
     "Live preview": "Live preview",
-    "States are written below metrics.<path>, e.g. servers.nas. Empty = derived from name": "States are written below metrics.<path>, e.g. servers.nas. Empty = derived from name"
+    "States are written below metrics.<path>, e.g. servers.nas. Empty = derived from name": "States are written below metrics.<path>, e.g. servers.nas. Empty = derived from name",
+    "Metric overview": "Metric overview"
 }

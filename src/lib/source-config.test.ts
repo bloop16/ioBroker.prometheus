@@ -87,9 +87,19 @@ describe("source-config => normalizeSources", () => {
         expect(result.sources[0].query).to.equal('avg(node_cpu_seconds_total{mode="idle",instance="server:9100"})');
     });
 
-    it("skips filter slots without a label or without a value", () => {
-        const result = normalize([rawSource({ filter1Label: "", filter1Value: "idle", filter2Label: "mode" })]);
+    it("stops collecting filters at the first slot without a label (cleared filter)", () => {
+        // clearing filter 1 hides slots 2+ in the UI, so their leftover data must be ignored
+        const result = normalize([
+            rawSource({ filter1Label: "", filter1Value: "idle", filter2Label: "mode", filter2Value: "idle" }),
+        ]);
         expect(result.sources[0].query).to.equal("avg(node_cpu_seconds_total)");
+    });
+
+    it("skips an incomplete filter (label without value) but keeps later slots", () => {
+        const result = normalize([
+            rawSource({ filter1Label: "mode", filter1Value: "", filter2Label: "instance", filter2Value: "a" }),
+        ]);
+        expect(result.sources[0].query).to.equal('avg(node_cpu_seconds_total{instance="a"})');
     });
 
     it("accepts groupBy as comma separated string (Admin sendTo serialization)", () => {

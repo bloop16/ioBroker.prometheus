@@ -66,8 +66,11 @@ function collectFilters(raw) {
   const filters = [];
   for (let slot = 1; slot <= FILTER_SLOT_COUNT; slot++) {
     const label = (_a = raw[`filter${slot}Label`]) == null ? void 0 : _a.trim();
+    if (!label) {
+      break;
+    }
     const value = raw[`filter${slot}Value`];
-    if (label && value !== void 0 && value !== "") {
+    if (value !== void 0 && value !== "") {
       filters.push({ label, value });
     }
   }

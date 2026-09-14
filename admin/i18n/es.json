@@ -18,6 +18,7 @@
     "Loaded live from the configured Prometheus server": "Cargado en vivo desde el servidor Prometheus configurado",
     "Maximum": "Máximo",
     "Metric": "Métrico",
+    "Metric overview": "Descripción general de métricas",
     "Minimum": "Mínimo",
     "Name": "Nombre",
     "One state per label value combination is created": "Se crea un estado por combinación de valores de etiqueta",

@@ -18,6 +18,7 @@
     "Loaded live from the configured Prometheus server": "Завантажується в реальному часі з налаштованого сервера Prometheus",
     "Maximum": "Максимум",
     "Metric": "Метрика",
+    "Metric overview": "Огляд показників",
     "Minimum": "Мінімум",
     "Name": "Ім'я",
     "One state per label value combination is created": "Для кожної комбінації значень мітки створюється один стан",

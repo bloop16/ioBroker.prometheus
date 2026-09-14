@@ -18,6 +18,7 @@
     "Loaded live from the configured Prometheus server": "从配置的 Prometheus 服务器实时加载",
     "Maximum": "最大限度",
     "Metric": "公制",
+    "Metric overview": "指标概述",
     "Minimum": "最低限度",
     "Name": "姓名",
     "One state per label value combination is created": "每个标签值组合创建一个状态",

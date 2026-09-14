@@ -24,10 +24,13 @@ community project and is not affiliated with or endorsed by the Prometheus proje
 * One centrally configured Prometheus server (URL, optional basic auth, connection test)
 * Any number of sources: each source combines one query and one poll interval
 * Visual query configuration:
-  * **Metric** dropdown, loaded live from `/api/v1/label/__name__/values`
+  * **Metric** picker with type-ahead search, loaded live from `/api/v1/label/__name__/values`
+  * **Metric overview**: shows series count plus all labels and their values of the selected
+    metric, so filters can be built without guessing
   * **Aggregation** dropdown: last value, average, sum, minimum, maximum, count of series
-  * **Filters**: up to 5 label/value pairs — both selected from dropdowns loaded live from
-    `/api/v1/labels` and `/api/v1/label/<name>/values`, no free text needed
+  * **Filters**: up to 5 label/value pairs — both selected from searchable dropdowns loaded
+    live from `/api/v1/labels` and `/api/v1/label/<name>/values`, no free text needed;
+    clearing a label ("— no filter —") removes the filter
   * **Group by**: multi-select of labels; one state per label value combination is created
   * **Live preview**: shows the generated PromQL query and its current result before saving
 * The PromQL query is always built server-side from the structured fields — never from free text
