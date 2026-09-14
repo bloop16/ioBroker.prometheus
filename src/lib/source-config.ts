@@ -155,12 +155,14 @@ export function validateUrl(url: string | undefined): string | undefined {
     if (!url) {
         return undefined;
     }
+    // users often enter "host:9090" without a scheme - assume plain http then
+    const withScheme = /^[a-zA-Z][a-zA-Z0-9+.-]*:\/\//.test(url) ? url : `http://${url}`;
     try {
-        const parsed = new URL(url);
+        const parsed = new URL(withScheme);
         if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
             return undefined;
         }
-        return url.replace(/\/+$/, "");
+        return withScheme.replace(/\/+$/, "");
     } catch {
         return undefined;
     }
@@ -198,7 +200,9 @@ export function normalizeSources(rawSources: RawSourceConfig[]): NormalizeResult
 
         const url = validateUrl(raw.url?.trim());
         if (!url) {
-            errors.push(`${name}: invalid or missing Prometheus URL "${raw.url ?? ""}" (http/https required)`);
+            errors.push(
+                `${name}: invalid or missing Prometheus URL "${raw.url ?? ""}" (expected e.g. http://host:9090)`,
+            );
             return;
         }
 

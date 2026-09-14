@@ -149,6 +149,12 @@ describe("source-config => validateUrl", () => {
         expect(validateUrl("https://prom.example")).to.equal("https://prom.example");
     });
 
+    it("prepends http:// when no scheme is given (common user input)", () => {
+        expect(validateUrl("192.168.1.105:9090")).to.equal("http://192.168.1.105:9090");
+        expect(validateUrl("prom.local:9090")).to.equal("http://prom.local:9090");
+        expect(validateUrl("localhost:9090")).to.equal("http://localhost:9090");
+    });
+
     it("rejects other protocols, malformed URLs and empty input", () => {
         expect(validateUrl("ftp://nope")).to.equal(undefined);
         expect(validateUrl("http://exa mple")).to.equal(undefined);

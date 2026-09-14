@@ -72,12 +72,13 @@ function validateUrl(url) {
   if (!url) {
     return void 0;
   }
+  const withScheme = /^[a-zA-Z][a-zA-Z0-9+.-]*:\/\//.test(url) ? url : `http://${url}`;
   try {
-    const parsed = new URL(url);
+    const parsed = new URL(withScheme);
     if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
       return void 0;
     }
-    return url.replace(/\/+$/, "");
+    return withScheme.replace(/\/+$/, "");
   } catch {
     return void 0;
   }
@@ -101,7 +102,9 @@ function normalizeSources(rawSources) {
     }
     const url = validateUrl((_b = raw.url) == null ? void 0 : _b.trim());
     if (!url) {
-      errors.push(`${name}: invalid or missing Prometheus URL "${(_c = raw.url) != null ? _c : ""}" (http/https required)`);
+      errors.push(
+        `${name}: invalid or missing Prometheus URL "${(_c = raw.url) != null ? _c : ""}" (expected e.g. http://host:9090)`
+      );
       return;
     }
     const metric = (_d = raw.metric) == null ? void 0 : _d.trim();
