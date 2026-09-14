@@ -73,8 +73,9 @@ For each source the adapter creates the following states below the configured ta
     ### **WORK IN PROGRESS**
 -->
 
-### **WORK IN PROGRESS**
-* (Martin Rauscher) initial release
+### 0.0.1 (2026-09-14)
+
+- (Martin Rauscher) initial release
 
 ## License
 MIT License
