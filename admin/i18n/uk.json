@@ -1,11 +1,20 @@
 {
+    "0.0.0.0 = all interfaces": "0.0.0.0 = усі інтерфейси",
     "Aggregation": "Агрегація",
+    "Allowed characters: letters, digits, underscore, colon. Empty = iobroker_state with the state id as label": "Дозволені символи: літери, цифри, підкреслення, двокрапка. Empty = iobroker_state з ідентифікатором стану як мітка",
     "Average": "Середній",
     "Base URL of the Prometheus server, e.g. http://192.168.1.10:9090": "Базова URL-адреса сервера Prometheus, напр. http://192.168.1.10:9090",
+    "Bind address": "Прив'язати адресу",
     "Configure your Prometheus server once, then add any number of queries. Metrics, labels and values are loaded live from the server - no PromQL knowledge required. Save the configuration after changing the server settings so the live dropdowns use them.": "Налаштуйте свій сервер Prometheus один раз, а потім додайте будь-яку кількість запитів. Показники, мітки та значення завантажуються в реальному часі з сервера – знання PromQL не потрібні. Збережіть конфігурацію після зміни налаштувань сервера, щоб використовувати їх у розкривних меню.",
     "Count of series": "Кількість серій",
+    "Custom metric name (optional)": "Назва спеціального показника (необов’язково)",
     "Display name; also used as default datapoint path": "Відображуване ім'я; також використовується як шлях до точки даних за замовчуванням",
+    "Enable /metrics endpoint": "Увімкнути кінцеву точку /metrics",
     "Enabled": "Увімкнено",
+    "Export this state to Prometheus": "Експортуйте цей стан у Prometheus",
+    "Exporter (ioBroker to Prometheus)": "Експортер (ioBroker до Prometheus)",
+    "Exporter port": "Порт експортера",
+    "Exposes selected ioBroker states on a /metrics endpoint for scraping by Prometheus. Select the states in the object settings of each datapoint (Prometheus tab) and add a scrape job for this endpoint to your prometheus.yml.": "Відкриває вибрані стани ioBroker у кінцевій точці /metrics для збирання Prometheus. Виберіть стани в налаштуваннях об’єкта для кожної точки даних (вкладка Prometheus) і додайте завдання очищення для цієї кінцевої точки до свого prometheus.yml.",
     "Filter label": "Мітка фільтра",
     "Filter value": "Значення фільтра",
     "Filters (optional)": "Фільтри (необов'язково)",
@@ -37,5 +46,6 @@
     "Sum": "сума",
     "Target datapoint path": "Шлях цільової точки даних",
     "Test connection": "Тестове підключення",
-    "Username (optional)": "Ім'я користувача (необов'язково)"
+    "Username (optional)": "Ім'я користувача (необов'язково)",
+    "Value is exposed on the /metrics endpoint of the adapter (exporter must be enabled in the instance settings)": "Значення відображається в кінцевій точці /metrics адаптера (експортер має бути ввімкнено в налаштуваннях екземпляра)"
 }

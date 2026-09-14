@@ -99,6 +99,63 @@
             "xl": 2,
             "newLine": true
         },
+        "_exporterHeader": {
+            "type": "header",
+            "text": "Exporter (ioBroker to Prometheus)",
+            "size": 4,
+            "xs": 12,
+            "sm": 12,
+            "md": 12,
+            "lg": 12,
+            "xl": 12
+        },
+        "_exporterInfo": {
+            "type": "staticText",
+            "text": "Exposes selected ioBroker states on a /metrics endpoint for scraping by Prometheus. Select the states in the object settings of each datapoint (Prometheus tab) and add a scrape job for this endpoint to your prometheus.yml.",
+            "style": {
+                "marginBottom": 8
+            },
+            "xs": 12,
+            "sm": 12,
+            "md": 12,
+            "lg": 12,
+            "xl": 12
+        },
+        "exporterEnabled": {
+            "type": "checkbox",
+            "label": "Enable /metrics endpoint",
+            "default": false,
+            "xs": 12,
+            "sm": 12,
+            "md": 4,
+            "lg": 3,
+            "xl": 3
+        },
+        "port": {
+            "type": "number",
+            "label": "Exporter port",
+            "min": 1,
+            "max": 65535,
+            "default": 9126,
+            "hidden": "!data.exporterEnabled",
+            "xs": 12,
+            "sm": 12,
+            "md": 4,
+            "lg": 3,
+            "xl": 3
+        },
+        "bind": {
+            "type": "text",
+            "label": "Bind address",
+            "default": "0.0.0.0",
+            "hidden": "!data.exporterEnabled",
+            "help": "0.0.0.0 = all interfaces",
+            "xs": 12,
+            "sm": 12,
+            "md": 4,
+            "lg": 3,
+            "xl": 3
+        },
         "_sourcesHeader": {
             "type": "header",
             "text": "Sources",

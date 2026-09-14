@@ -21,8 +21,10 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
   isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target,
   mod
 ));
+var http = __toESM(require("node:http"));
 var utils = __toESM(require("@iobroker/adapter-core"));
 var import_query_builder = require("./lib/query-builder");
+var import_exporter = require("./lib/exporter");
 var import_prometheus_client = require("./lib/prometheus-client");
 var import_source_config = require("./lib/source-config");
 const DEFAULT_REQUEST_TIMEOUT_SEC = 10;
@@ -37,6 +39,12 @@ class Prometheus extends utils.Adapter {
   isShuttingDown = false;
   /** Health of each source (by target path), used for info.connection */
   sourceHealth = /* @__PURE__ */ new Map();
+  /** Current values of all states exported via the /metrics endpoint */
+  registry = new import_exporter.MetricsRegistry();
+  exporterServer;
+  /** Ids of the states currently exported */
+  exportedIds = /* @__PURE__ */ new Set();
+  systemLanguage = "en";
   constructor(options = {}) {
     super({
       ...options,
@@ -44,6 +52,8 @@ class Prometheus extends utils.Adapter {
     });
     this.on("ready", this.onReady.bind(this));
     this.on("message", this.onMessage.bind(this));
+    this.on("stateChange", this.onStateChange.bind(this));
+    this.on("objectChange", this.onObjectChange.bind(this));
     this.on("unload", this.onUnload.bind(this));
   }
   /**
@@ -51,6 +61,13 @@ class Prometheus extends utils.Adapter {
    */
   async onReady() {
     await this.setState("info.connection", false, true);
+    if (this.config.exporterEnabled) {
+      try {
+        await this.startExporter();
+      } catch (error) {
+        this.log.error(`Failed to start the /metrics exporter: ${this.errorText(error)}`);
+      }
+    }
     const { sources, errors } = (0, import_source_config.normalizeSources)(this.config.sources, this.config.url);
     for (const error of errors) {
       this.log.warn(`Ignoring misconfigured source - ${error}`);
@@ -438,6 +455,132 @@ class Prometheus extends utils.Adapter {
       password: user ? (_b = password != null ? password : this.config.password) != null ? _b : "" : void 0
     });
   }
+  /** Starts tracking all custom-enabled states and the /metrics HTTP server */
+  async startExporter() {
+    var _a, _b, _c, _d;
+    this.systemLanguage = ((_b = (_a = await this.getForeignObjectAsync("system.config")) == null ? void 0 : _a.common) == null ? void 0 : _b.language) || "en";
+    const view = await this.getObjectViewAsync("system", "custom", {});
+    for (const row of view.rows) {
+      const custom = (_c = row.value) == null ? void 0 : _c[this.namespace];
+      if (custom == null ? void 0 : custom.enabled) {
+        await this.trackState(row.id, custom);
+      }
+    }
+    await this.subscribeForeignObjectsAsync("*");
+    const port = this.exporterPort();
+    const bind = ((_d = this.config.bind) == null ? void 0 : _d.trim()) || "0.0.0.0";
+    this.exporterServer = http.createServer((req, res) => {
+      var _a2;
+      if (((_a2 = req.url) == null ? void 0 : _a2.split("?")[0]) === "/metrics") {
+        res.writeHead(200, { "Content-Type": "text/plain; version=0.0.4; charset=utf-8" });
+        res.end(this.registry.render());
+      } else {
+        res.writeHead(404, { "Content-Type": "text/plain" });
+        res.end("Not found. Metrics are available at /metrics\n");
+      }
+    });
+    this.exporterServer.on("error", (error) => {
+      this.log.error(`Exporter HTTP server error: ${this.errorText(error)}`);
+    });
+    await new Promise((resolve, reject) => {
+      var _a2, _b2;
+      (_a2 = this.exporterServer) == null ? void 0 : _a2.once("error", reject);
+      (_b2 = this.exporterServer) == null ? void 0 : _b2.listen(port, bind, () => resolve());
+    });
+    this.log.info(`Exporter listening on http://${bind}:${port}/metrics (${this.registry.size} states)`);
+  }
+  /**
+   * Starts exporting one state
+   *
+   * @param id - The foreign state id
+   * @param custom - The per-datapoint settings of this adapter instance
+   * @param custom.metricName - Optional custom metric name for this state
+   */
+  async trackState(id, custom) {
+    var _a;
+    try {
+      const obj = await this.getForeignObjectAsync(id);
+      if ((obj == null ? void 0 : obj.type) !== "state") {
+        return;
+      }
+      const state = await this.getForeignStateAsync(id);
+      this.registry.set(id, {
+        name: this.stateName(obj) || id,
+        value: (0, import_exporter.toMetricValue)(state == null ? void 0 : state.val),
+        metricName: ((_a = custom.metricName) == null ? void 0 : _a.trim()) || void 0
+      });
+      if (!this.exportedIds.has(id)) {
+        this.exportedIds.add(id);
+        await this.subscribeForeignStatesAsync(id);
+        this.log.debug(`Exporting state ${id}`);
+      }
+    } catch (error) {
+      this.log.warn(`Cannot export state ${id}: ${this.errorText(error)}`);
+    }
+  }
+  /**
+   * Stops exporting one state
+   *
+   * @param id - The foreign state id
+   */
+  async untrackState(id) {
+    if (this.exportedIds.delete(id)) {
+      this.registry.remove(id);
+      await this.unsubscribeForeignStatesAsync(id);
+      this.log.debug(`No longer exporting state ${id}`);
+    }
+  }
+  /**
+   * Resolves the display name of an object in the system language
+   *
+   * @param obj - The ioBroker object
+   */
+  stateName(obj) {
+    var _a, _b, _c;
+    const name = (_a = obj.common) == null ? void 0 : _a.name;
+    if (typeof name === "string") {
+      return name;
+    }
+    if (name && typeof name === "object") {
+      const translated = (_b = name[this.systemLanguage]) != null ? _b : name.en;
+      return (_c = translated != null ? translated : Object.values(name)[0]) != null ? _c : "";
+    }
+    return "";
+  }
+  /**
+   * Tracks value changes of exported states
+   *
+   * @param id - State id
+   * @param state - New state value or null/undefined when deleted
+   */
+  onStateChange(id, state) {
+    if (!this.exportedIds.has(id)) {
+      return;
+    }
+    this.registry.updateValue(id, state ? (0, import_exporter.toMetricValue)(state.val) : void 0);
+  }
+  /**
+   * Reacts to per-datapoint custom settings changes while the exporter runs
+   *
+   * @param id - Object id
+   * @param obj - Changed object or null/undefined when deleted
+   */
+  onObjectChange(id, obj) {
+    var _a, _b;
+    if (!this.config.exporterEnabled) {
+      return;
+    }
+    const custom = (_b = (_a = obj == null ? void 0 : obj.common) == null ? void 0 : _a.custom) == null ? void 0 : _b[this.namespace];
+    if (custom == null ? void 0 : custom.enabled) {
+      void this.trackState(id, custom);
+    } else {
+      void this.untrackState(id);
+    }
+  }
+  exporterPort() {
+    const parsed = Number(this.config.port);
+    return Number.isInteger(parsed) && parsed >= 1 && parsed <= 65535 ? parsed : 9126;
+  }
   requestTimeoutMs() {
     const parsed = Number(this.config.requestTimeout);
     const seconds = Number.isFinite(parsed) && parsed >= 1 ? Math.min(parsed, 300) : DEFAULT_REQUEST_TIMEOUT_SEC;
@@ -462,6 +605,12 @@ class Prometheus extends utils.Adapter {
         this.clearInterval(interval);
       }
       this.pollIntervals = [];
+      if (this.exporterServer) {
+        this.exporterServer.close();
+        this.exporterServer = void 0;
+      }
+      this.registry.clear();
+      this.exportedIds.clear();
       callback();
     } catch (error) {
       this.log.error(`Error during unloading: ${this.errorText(error)}`);

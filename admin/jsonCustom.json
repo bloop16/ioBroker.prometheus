@@ -1,0 +1,28 @@
+{
+    "i18n": true,
+    "type": "panel",
+    "items": {
+        "enabled": {
+            "type": "checkbox",
+            "label": "Export this state to Prometheus",
+            "default": false,
+            "help": "Value is exposed on the /metrics endpoint of the adapter (exporter must be enabled in the instance settings)",
+            "xs": 12,
+            "sm": 12,
+            "md": 6,
+            "lg": 6,
+            "xl": 6
+        },
+        "metricName": {
+            "type": "text",
+            "label": "Custom metric name (optional)",
+            "default": "",
+            "help": "Allowed characters: letters, digits, underscore, colon. Empty = iobroker_state with the state id as label",
+            "xs": 12,
+            "sm": 12,
+            "md": 6,
+            "lg": 6,
+            "xl": 6
+        }
+    }
+}

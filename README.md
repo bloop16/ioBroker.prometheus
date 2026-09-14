@@ -50,6 +50,29 @@ community project and is not affiliated with or endorsed by the Prometheus proje
 4. Check the live preview: it shows the generated query and its current result.
 5. Choose a poll interval and (optionally) a target datapoint path, then save.
 
+## Exporter (ioBroker to Prometheus)
+
+The adapter can also work in the opposite direction: it exposes selected ioBroker states on a
+`/metrics` endpoint (Prometheus text exposition format) so your Prometheus server can scrape
+them — like a node exporter for your smart home.
+
+1. Enable the exporter in the instance settings (port, default `9126`).
+2. Open the object settings of any numeric or boolean datapoint and enable
+   **Export this state to Prometheus** on the adapter's tab. Optionally set a custom metric
+   name (default: `iobroker_state` with the state id and name as labels).
+3. Add a scrape job to your `prometheus.yml`:
+
+```yaml
+scrape_configs:
+  - job_name: iobroker
+    static_configs:
+      - targets: ["<iobroker-ip>:9126"]
+```
+
+Prometheus stores every scrape as a time series sample, so history and Grafana dashboards work
+out of the box. Note that values changing faster than the scrape interval are sampled, not
+recorded completely; booleans are exported as 0/1.
+
 ## Created states
 
 For each source the adapter creates the following states below `metrics.<target path>`

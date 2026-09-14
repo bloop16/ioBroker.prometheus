@@ -1,11 +1,20 @@
 {
+    "0.0.0.0 = all interfaces": "0.0.0.0 = 所有接口",
     "Aggregation": "聚合",
+    "Allowed characters: letters, digits, underscore, colon. Empty = iobroker_state with the state id as label": "允许的字符：字母、数字、下划线、冒号。 Empty = iobroker_state，以状态 id 作为标签",
     "Average": "平均的",
     "Base URL of the Prometheus server, e.g. http://192.168.1.10:9090": "Prometheus 服务器的基本 URL，例如http://192.168.1.10:9090",
+    "Bind address": "绑定地址",
     "Configure your Prometheus server once, then add any number of queries. Metrics, labels and values are loaded live from the server - no PromQL knowledge required. Save the configuration after changing the server settings so the live dropdowns use them.": "配置 Prometheus 服务器一次，然后添加任意数量的查询。指标、标签和值从服务器实时加载 - 无需 PromQL 知识。更改服务器设置后保存配置，以便实时下拉列表使用它们。",
     "Count of series": "系列数",
+    "Custom metric name (optional)": "自定义指标名称（可选）",
     "Display name; also used as default datapoint path": "显示名称；也用作默认数据点路径",
+    "Enable /metrics endpoint": "启用 /metrics 端点",
     "Enabled": "启用",
+    "Export this state to Prometheus": "将此状态导出到 Prometheus",
+    "Exporter (ioBroker to Prometheus)": "导出器（ioBroker 到 Prometheus）",
+    "Exporter port": "出口国港口",
+    "Exposes selected ioBroker states on a /metrics endpoint for scraping by Prometheus. Select the states in the object settings of each datapoint (Prometheus tab) and add a scrape job for this endpoint to your prometheus.yml.": "在 /metrics 端点上公开选定的 ioBroker 状态，以便 Prometheus 进行抓取。选择每个数据点（Prometheus 选项卡）的对象设置中的状态，并将该端点的抓取作业添加到您的 prometheus.yml 中。",
     "Filter label": "过滤器标签",
     "Filter value": "过滤值",
     "Filters (optional)": "过滤器（可选）",
@@ -37,5 +46,6 @@
     "Sum": "和",
     "Target datapoint path": "目标数据点路径",
     "Test connection": "测试连接",
-    "Username (optional)": "用户名（可选）"
+    "Username (optional)": "用户名（可选）",
+    "Value is exposed on the /metrics endpoint of the adapter (exporter must be enabled in the instance settings)": "值在适配器的 /metrics 端点上公开（必须在实例设置中启用导出器）"
 }

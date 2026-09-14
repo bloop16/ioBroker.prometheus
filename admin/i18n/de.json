@@ -1,11 +1,20 @@
 {
+    "0.0.0.0 = all interfaces": "0.0.0.0 = alle Interfaces",
     "Aggregation": "Aggregation",
+    "Allowed characters: letters, digits, underscore, colon. Empty = iobroker_state with the state id as label": "Erlaubte Zeichen: Buchstaben, Ziffern, Unterstrich, Doppelpunkt. Leer = iobroker_state mit der State-ID als Label",
     "Average": "Durchschnitt",
     "Base URL of the Prometheus server, e.g. http://192.168.1.10:9090": "Basis-URL des Prometheus-Servers, z.B. http://192.168.1.10:9090",
+    "Bind address": "Bind-Adresse",
     "Configure your Prometheus server once, then add any number of queries. Metrics, labels and values are loaded live from the server - no PromQL knowledge required. Save the configuration after changing the server settings so the live dropdowns use them.": "Konfiguriere einmal deinen Prometheus-Server und lege dann beliebig viele Abfragen an. Metriken, Labels und Werte werden live vom Server geladen - keine PromQL-Kenntnisse erforderlich. Nach Änderungen an den Server-Einstellungen die Konfiguration speichern, damit die Live-Dropdowns sie verwenden.",
     "Count of series": "Anzahl der Serien",
+    "Custom metric name (optional)": "Eigener Metrikname (optional)",
     "Display name; also used as default datapoint path": "Anzeigename; wird auch als Standard-Datenpunktpfad verwendet",
+    "Enable /metrics endpoint": "/metrics-Endpoint aktivieren",
     "Enabled": "Aktiviert",
+    "Export this state to Prometheus": "Diesen State zu Prometheus exportieren",
+    "Exporter (ioBroker to Prometheus)": "Exporter (ioBroker zu Prometheus)",
+    "Exporter port": "Exporter-Port",
+    "Exposes selected ioBroker states on a /metrics endpoint for scraping by Prometheus. Select the states in the object settings of each datapoint (Prometheus tab) and add a scrape job for this endpoint to your prometheus.yml.": "Stellt ausgewählte ioBroker-States auf einem /metrics-Endpoint zum Scrapen durch Prometheus bereit. Aktiviere die States in den Objekteinstellungen des jeweiligen Datenpunkts (Prometheus-Tab) und trage einen Scrape-Job für diesen Endpoint in deine prometheus.yml ein.",
     "Filter label": "Filter-Label",
     "Filter value": "Filter-Wert",
     "Filters (optional)": "Filter (optional)",
@@ -37,5 +46,6 @@
     "Sum": "Summe",
     "Target datapoint path": "Ziel-Datenpunktpfad",
     "Test connection": "Verbindung testen",
-    "Username (optional)": "Benutzername (optional)"
+    "Username (optional)": "Benutzername (optional)",
+    "Value is exposed on the /metrics endpoint of the adapter (exporter must be enabled in the instance settings)": "Der Wert wird auf dem /metrics-Endpoint des Adapters bereitgestellt (Exporter muss in den Instanz-Einstellungen aktiviert sein)"
 }

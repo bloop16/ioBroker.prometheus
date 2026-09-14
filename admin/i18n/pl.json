@@ -1,11 +1,20 @@
 {
+    "0.0.0.0 = all interfaces": "0.0.0.0 = wszystkie interfejsy",
     "Aggregation": "Zbiór",
+    "Allowed characters: letters, digits, underscore, colon. Empty = iobroker_state with the state id as label": "Dozwolone znaki: litery, cyfry, podkreślenie, dwukropek. Pusty = iobroker_state z identyfikatorem stanu jako etykietą",
     "Average": "Przeciętny",
     "Base URL of the Prometheus server, e.g. http://192.168.1.10:9090": "Bazowy adres URL serwera Prometheus, np. http://192.168.1.10:9090",
+    "Bind address": "Powiąż adres",
     "Configure your Prometheus server once, then add any number of queries. Metrics, labels and values are loaded live from the server - no PromQL knowledge required. Save the configuration after changing the server settings so the live dropdowns use them.": "Skonfiguruj raz swój serwer Prometheus, a następnie dodaj dowolną liczbę zapytań. Metryki, etykiety i wartości są ładowane na żywo z serwera - nie jest wymagana znajomość PromQL. Zapisz konfigurację po zmianie ustawień serwera, aby listy rozwijane na żywo z nich korzystały.",
     "Count of series": "Liczba serii",
+    "Custom metric name (optional)": "Niestandardowa nazwa metryki (opcjonalnie)",
     "Display name; also used as default datapoint path": "Nazwa wyświetlana; używana również jako domyślna ścieżka do punktu danych",
+    "Enable /metrics endpoint": "Włącz punkt końcowy /metrics",
     "Enabled": "Włączony",
+    "Export this state to Prometheus": "Eksportuj ten stan do Prometheusa",
+    "Exporter (ioBroker to Prometheus)": "Eksporter (ioBroker do Prometheus)",
+    "Exporter port": "Port eksportera",
+    "Exposes selected ioBroker states on a /metrics endpoint for scraping by Prometheus. Select the states in the object settings of each datapoint (Prometheus tab) and add a scrape job for this endpoint to your prometheus.yml.": "Udostępnia wybrane stany ioBroker w punkcie końcowym /metrics do zeskrobywania przez Prometheus. Wybierz stany w ustawieniach obiektu każdego punktu danych (zakładka Prometheus) i dodaj zadanie usuwania dla tego punktu końcowego do pliku prometheus.yml.",
     "Filter label": "Etykieta filtra",
     "Filter value": "Wartość filtra",
     "Filters (optional)": "Filtry (opcjonalnie)",
@@ -37,5 +46,6 @@
     "Sum": "Suma",
     "Target datapoint path": "Docelowa ścieżka punktu danych",
     "Test connection": "Połączenie testowe",
-    "Username (optional)": "Nazwa użytkownika (opcjonalnie)"
+    "Username (optional)": "Nazwa użytkownika (opcjonalnie)",
+    "Value is exposed on the /metrics endpoint of the adapter (exporter must be enabled in the instance settings)": "Wartość jest widoczna w punkcie końcowym /metrics adaptera (w ustawieniach instancji musi być włączony eksporter)"
 }

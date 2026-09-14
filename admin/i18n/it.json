@@ -1,11 +1,20 @@
 {
+    "0.0.0.0 = all interfaces": "0.0.0.0 = tutte le interfacce",
     "Aggregation": "Aggregazione",
+    "Allowed characters: letters, digits, underscore, colon. Empty = iobroker_state with the state id as label": "Caratteri consentiti: lettere, cifre, carattere di sottolineatura, due punti. Vuoto = iobroker_state con l'ID dello stato come etichetta",
     "Average": "Media",
     "Base URL of the Prometheus server, e.g. http://192.168.1.10:9090": "URL di base del server Prometheus, ad es. http://192.168.1.10:9090",
+    "Bind address": "Associa l'indirizzo",
     "Configure your Prometheus server once, then add any number of queries. Metrics, labels and values are loaded live from the server - no PromQL knowledge required. Save the configuration after changing the server settings so the live dropdowns use them.": "Configura il tuo server Prometheus una volta, quindi aggiungi un numero qualsiasi di query. Metriche, etichette e valori vengono caricati in tempo reale dal server: non è richiesta alcuna conoscenza di PromQL. Salva la configurazione dopo aver modificato le impostazioni del server in modo che i menu a discesa live le utilizzino.",
     "Count of series": "Conteggio delle serie",
+    "Custom metric name (optional)": "Nome della metrica personalizzata (facoltativo)",
     "Display name; also used as default datapoint path": "Nome da visualizzare; utilizzato anche come percorso del punto dati predefinito",
+    "Enable /metrics endpoint": "Abilita endpoint /metrics",
     "Enabled": "Abilitato",
+    "Export this state to Prometheus": "Esporta questo stato su Prometeo",
+    "Exporter (ioBroker to Prometheus)": "Esportatore (da ioBroker a Prometheus)",
+    "Exporter port": "Porto esportatore",
+    "Exposes selected ioBroker states on a /metrics endpoint for scraping by Prometheus. Select the states in the object settings of each datapoint (Prometheus tab) and add a scrape job for this endpoint to your prometheus.yml.": "Espone gli stati ioBroker selezionati su un endpoint /metrics per lo scraping da parte di Prometheus. Seleziona gli stati nelle impostazioni dell'oggetto di ciascun punto dati (scheda Prometheus) e aggiungi un processo di scraping per questo endpoint al tuo prometheus.yml.",
     "Filter label": "Etichetta filtro",
     "Filter value": "Valore del filtro",
     "Filters (optional)": "Filtri (facoltativi)",
@@ -37,5 +46,6 @@
     "Sum": "Somma",
     "Target datapoint path": "Percorso del punto dati di destinazione",
     "Test connection": "Testare la connessione",
-    "Username (optional)": "Nome utente (facoltativo)"
+    "Username (optional)": "Nome utente (facoltativo)",
+    "Value is exposed on the /metrics endpoint of the adapter (exporter must be enabled in the instance settings)": "Il valore è esposto sull'endpoint /metrics dell'adattatore (l'esportatore deve essere abilitato nelle impostazioni dell'istanza)"
 }

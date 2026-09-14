@@ -16,6 +16,12 @@ declare global {
             password: string;
             /** Configured Prometheus sources as entered in the Admin UI */
             sources: RawSourceConfig[];
+            /** Whether the /metrics pull exporter is active */
+            exporterEnabled: boolean;
+            /** TCP port of the /metrics endpoint */
+            port: number;
+            /** Bind address of the /metrics endpoint */
+            bind: string;
         }
     }
 }

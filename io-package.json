@@ -70,7 +70,8 @@
         "connectionType": "local",
         "dataSource": "poll",
         "adminUI": {
-            "config": "json"
+            "config": "json",
+            "custom": "json"
         },
         "messagebox": true,
         "dependencies": [
@@ -82,14 +83,18 @@
             {
                 "admin": ">=7.6.20"
             }
-        ]
+        ],
+        "supportCustoms": true
     },
     "native": {
         "url": "",
         "requestTimeout": 10,
         "username": "",
         "password": "",
-        "sources": []
+        "sources": [],
+        "exporterEnabled": false,
+        "port": 9126,
+        "bind": "0.0.0.0"
     },
     "encryptedNative": [
         "password"

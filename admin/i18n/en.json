@@ -37,5 +37,15 @@
     "Only series with this label value are included": "Only series with this label value are included",
     "Live preview": "Live preview",
     "States are written below metrics.<path>, e.g. servers.nas. Empty = derived from name": "States are written below metrics.<path>, e.g. servers.nas. Empty = derived from name",
-    "Metric overview": "Metric overview"
+    "Metric overview": "Metric overview",
+    "Exporter (ioBroker to Prometheus)": "Exporter (ioBroker to Prometheus)",
+    "Exposes selected ioBroker states on a /metrics endpoint for scraping by Prometheus. Select the states in the object settings of each datapoint (Prometheus tab) and add a scrape job for this endpoint to your prometheus.yml.": "Exposes selected ioBroker states on a /metrics endpoint for scraping by Prometheus. Select the states in the object settings of each datapoint (Prometheus tab) and add a scrape job for this endpoint to your prometheus.yml.",
+    "Enable /metrics endpoint": "Enable /metrics endpoint",
+    "Exporter port": "Exporter port",
+    "Bind address": "Bind address",
+    "0.0.0.0 = all interfaces": "0.0.0.0 = all interfaces",
+    "Export this state to Prometheus": "Export this state to Prometheus",
+    "Value is exposed on the /metrics endpoint of the adapter (exporter must be enabled in the instance settings)": "Value is exposed on the /metrics endpoint of the adapter (exporter must be enabled in the instance settings)",
+    "Custom metric name (optional)": "Custom metric name (optional)",
+    "Allowed characters: letters, digits, underscore, colon. Empty = iobroker_state with the state id as label": "Allowed characters: letters, digits, underscore, colon. Empty = iobroker_state with the state id as label"
 }

@@ -1,11 +1,20 @@
 {
+    "0.0.0.0 = all interfaces": "0.0.0.0 = todas las interfaces",
     "Aggregation": "Agregación",
+    "Allowed characters: letters, digits, underscore, colon. Empty = iobroker_state with the state id as label": "Caracteres permitidos: letras, dígitos, guión bajo, dos puntos. Vacío = iobroker_state con la identificación del estado como etiqueta",
     "Average": "Promedio",
     "Base URL of the Prometheus server, e.g. http://192.168.1.10:9090": "URL base del servidor Prometheus, p. http://192.168.1.10:9090",
+    "Bind address": "dirección de enlace",
     "Configure your Prometheus server once, then add any number of queries. Metrics, labels and values are loaded live from the server - no PromQL knowledge required. Save the configuration after changing the server settings so the live dropdowns use them.": "Configure su servidor Prometheus una vez y luego agregue cualquier cantidad de consultas. Las métricas, etiquetas y valores se cargan en vivo desde el servidor; no se requieren conocimientos de PromQL. Guarde la configuración después de cambiar la configuración del servidor para que los menús desplegables en vivo la utilicen.",
     "Count of series": "recuento de series",
+    "Custom metric name (optional)": "Nombre de métrica personalizada (opcional)",
     "Display name; also used as default datapoint path": "Nombre para mostrar; también se utiliza como ruta de punto de datos predeterminada",
+    "Enable /metrics endpoint": "Habilitar punto final /métricas",
     "Enabled": "Activado",
+    "Export this state to Prometheus": "Exportar este estado a Prometheus",
+    "Exporter (ioBroker to Prometheus)": "Exportador (ioBroker a Prometheus)",
+    "Exporter port": "Puerto exportador",
+    "Exposes selected ioBroker states on a /metrics endpoint for scraping by Prometheus. Select the states in the object settings of each datapoint (Prometheus tab) and add a scrape job for this endpoint to your prometheus.yml.": "Expone estados seleccionados de ioBroker en un punto final /metrics para que Prometheus los raspe. Seleccione los estados en la configuración del objeto de cada punto de datos (pestaña Prometheus) y agregue un trabajo de raspado para este punto final a su prometheus.yml.",
     "Filter label": "Etiqueta de filtro",
     "Filter value": "Valor del filtro",
     "Filters (optional)": "Filtros (opcional)",
@@ -37,5 +46,6 @@
     "Sum": "Suma",
     "Target datapoint path": "Ruta del punto de datos de destino",
     "Test connection": "Conexión de prueba",
-    "Username (optional)": "Nombre de usuario (opcional)"
+    "Username (optional)": "Nombre de usuario (opcional)",
+    "Value is exposed on the /metrics endpoint of the adapter (exporter must be enabled in the instance settings)": "El valor se expone en el punto final /metrics del adaptador (el exportador debe estar habilitado en la configuración de la instancia)"
 }

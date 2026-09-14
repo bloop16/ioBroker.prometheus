@@ -1,5 +1,23 @@
 const path = require("path");
 const http = require("http");
+
+const EXPORTER_PORT = 19126;
+
+/**
+ * Fetches a URL and resolves with the response body.
+ *
+ * @param {string} url - The URL to fetch
+ * @returns {Promise<string>} The response body
+ */
+function httpGet(url) {
+    return new Promise((resolve, reject) => {
+        http.get(url, res => {
+            let body = "";
+            res.on("data", chunk => (body += chunk));
+            res.on("end", () => resolve(body));
+        }).on("error", reject);
+    });
+}
 const { tests } = require("@iobroker/testing");
 
 /**
@@ -64,6 +82,9 @@ tests.integration(path.join(__dirname, ".."), {
                         requestTimeout: 5,
                         username: "",
                         password: "",
+                        exporterEnabled: true,
+                        port: EXPORTER_PORT,
+                        bind: "127.0.0.1",
                         sources: [
                             {
                                 enabled: true,
@@ -77,6 +98,23 @@ tests.integration(path.join(__dirname, ".."), {
                         ],
                     },
                 });
+                // a state with per-datapoint custom settings that should be exported
+                await harness.objects.setObjectAsync("0_userdata.0.exporter_test", {
+                    type: "state",
+                    common: {
+                        name: "Exporter Test",
+                        type: "number",
+                        role: "value",
+                        read: true,
+                        write: true,
+                        custom: { "prometheus.0": { enabled: true, metricName: "iobroker_exporter_test" } },
+                    },
+                    native: {},
+                });
+                await new Promise(resolve =>
+                    harness.states.setState("0_userdata.0.exporter_test", { val: 12.34, ack: true }, resolve),
+                );
+
                 await harness.startAdapterAndWait(true);
 
                 // wait for the first poll cycle (startup jitter is up to 5s)
@@ -109,6 +147,14 @@ tests.integration(path.join(__dirname, ".."), {
                 const values = metricNames.map(entry => entry.value);
                 if (!values.includes("node_load1") || !values.includes("up")) {
                     throw new Error(`Unexpected metric names: ${JSON.stringify(metricNames)}`);
+                }
+
+                const metricsText = await httpGet(`http://127.0.0.1:${EXPORTER_PORT}/metrics`);
+                if (!metricsText.includes('iobroker_exporter_test{id="0_userdata.0.exporter_test"')) {
+                    throw new Error(`Exported state missing in /metrics output: ${metricsText}`);
+                }
+                if (!metricsText.includes("12.34")) {
+                    throw new Error(`Exported value missing in /metrics output: ${metricsText}`);
                 }
             });
         });
