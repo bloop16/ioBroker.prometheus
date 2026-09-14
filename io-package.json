@@ -85,6 +85,7 @@
         ]
     },
     "native": {
+        "url": "",
         "requestTimeout": 10,
         "username": "",
         "password": "",

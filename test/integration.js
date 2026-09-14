@@ -60,6 +60,7 @@ tests.integration(path.join(__dirname, ".."), {
 
                 await harness.changeAdapterConfig("prometheus", {
                     native: {
+                        url: `http://127.0.0.1:${mock.port}`,
                         requestTimeout: 5,
                         username: "",
                         password: "",
@@ -67,7 +68,6 @@ tests.integration(path.join(__dirname, ".."), {
                             {
                                 enabled: true,
                                 name: "Mock",
-                                url: `http://127.0.0.1:${mock.port}`,
                                 pollInterval: 5,
                                 targetPath: "mock.load",
                                 metric: "node_load1",
@@ -103,7 +103,7 @@ tests.integration(path.join(__dirname, ".."), {
                 }
 
                 const metricNames = await new Promise((resolve, reject) => {
-                    harness.sendTo("prometheus.0", "getMetricNames", { url: `http://127.0.0.1:${mock.port}` }, resolve);
+                    harness.sendTo("prometheus.0", "getMetricNames", {}, resolve);
                     setTimeout(() => reject(new Error("sendTo timed out")), 10000);
                 });
                 const values = metricNames.map(entry => entry.value);

@@ -48,7 +48,7 @@ class Prometheus extends utils.Adapter {
    */
   async onReady() {
     await this.setState("info.connection", false, true);
-    const { sources, errors } = (0, import_source_config.normalizeSources)(this.config.sources);
+    const { sources, errors } = (0, import_source_config.normalizeSources)(this.config.sources, this.config.url);
     for (const error of errors) {
       this.log.warn(`Ignoring misconfigured source - ${error}`);
     }
@@ -242,6 +242,16 @@ class Prometheus extends utils.Adapter {
     const message = typeof obj.message === "object" && obj.message !== null ? obj.message : {};
     try {
       switch (obj.command) {
+        case "testConnection": {
+          const client = this.clientForUrl(message.url, message.username, message.password);
+          if (!client) {
+            this.respond(obj, { error: "Invalid Prometheus URL (expected e.g. http://host:9090)" });
+            break;
+          }
+          await client.labelNames();
+          this.respond(obj, { result: "connected" });
+          break;
+        }
         case "getMetricNames":
           this.respond(obj, await this.listForDropdown(message, (client) => client.metricNames()));
           break;
@@ -276,7 +286,13 @@ class Prometheus extends utils.Adapter {
     } catch (error) {
       const text = this.errorText(error);
       this.log.debug(`Command ${obj.command} failed: ${text}`);
-      this.respond(obj, obj.command === "previewQuery" ? { text: `Error: ${text}` } : []);
+      if (obj.command === "previewQuery") {
+        this.respond(obj, { text: `Error: ${text}` });
+      } else if (obj.command === "testConnection") {
+        this.respond(obj, { error: text });
+      } else {
+        this.respond(obj, []);
+      }
     }
   }
   respond(obj, result) {
@@ -327,20 +343,25 @@ class Prometheus extends utils.Adapter {
     return { text: `${query}  =>  ${values}${suffix}` };
   }
   /**
-   * Creates a client for a URL coming from the Admin UI, or undefined if the URL is unusable
+   * Creates a client for Admin UI requests. Falls back to the saved server
+   * configuration when the message does not carry its own values.
    *
-   * @param url - Prometheus base URL as entered in the Admin UI
+   * @param url - Prometheus base URL from the Admin UI, if provided
+   * @param username - Basic auth user name override, if provided
+   * @param password - Basic auth password override, if provided
    */
-  clientForUrl(url) {
-    const validated = (0, import_source_config.validateUrl)(url == null ? void 0 : url.trim());
+  clientForUrl(url, username, password) {
+    var _a;
+    const validated = (0, import_source_config.validateUrl)((url == null ? void 0 : url.trim()) || this.config.url);
     if (!validated) {
       return void 0;
     }
+    const user = username != null ? username : this.config.username || void 0;
     return new import_prometheus_client.PrometheusClient({
       baseUrl: validated,
       timeoutMs: this.requestTimeoutMs(),
-      username: this.config.username || void 0,
-      password: this.config.password || void 0
+      username: user || void 0,
+      password: user ? (_a = password != null ? password : this.config.password) != null ? _a : "" : void 0
     });
   }
   requestTimeoutMs() {

@@ -53,7 +53,7 @@ class Prometheus extends utils.Adapter {
     private async onReady(): Promise<void> {
         await this.setState("info.connection", false, true);
 
-        const { sources, errors } = normalizeSources(this.config.sources);
+        const { sources, errors } = normalizeSources(this.config.sources, this.config.url);
         for (const error of errors) {
             this.log.warn(`Ignoring misconfigured source - ${error}`);
         }
@@ -260,6 +260,16 @@ class Prometheus extends utils.Adapter {
         >;
         try {
             switch (obj.command) {
+                case "testConnection": {
+                    const client = this.clientForUrl(message.url, message.username, message.password);
+                    if (!client) {
+                        this.respond(obj, { error: "Invalid Prometheus URL (expected e.g. http://host:9090)" });
+                        break;
+                    }
+                    await client.labelNames();
+                    this.respond(obj, { result: "connected" });
+                    break;
+                }
                 case "getMetricNames":
                     this.respond(obj, await this.listForDropdown(message, client => client.metricNames()));
                     break;
@@ -287,8 +297,14 @@ class Prometheus extends utils.Adapter {
         } catch (error) {
             const text = this.errorText(error);
             this.log.debug(`Command ${obj.command} failed: ${text}`);
-            // Dropdown commands expect an array, previewQuery expects a text object
-            this.respond(obj, obj.command === "previewQuery" ? { text: `Error: ${text}` } : []);
+            // Dropdown commands expect an array, the other commands expect an object
+            if (obj.command === "previewQuery") {
+                this.respond(obj, { text: `Error: ${text}` });
+            } else if (obj.command === "testConnection") {
+                this.respond(obj, { error: text });
+            } else {
+                this.respond(obj, []);
+            }
         }
     }
 
@@ -360,20 +376,24 @@ class Prometheus extends utils.Adapter {
     }
 
     /**
-     * Creates a client for a URL coming from the Admin UI, or undefined if the URL is unusable
+     * Creates a client for Admin UI requests. Falls back to the saved server
+     * configuration when the message does not carry its own values.
      *
-     * @param url - Prometheus base URL as entered in the Admin UI
+     * @param url - Prometheus base URL from the Admin UI, if provided
+     * @param username - Basic auth user name override, if provided
+     * @param password - Basic auth password override, if provided
      */
-    private clientForUrl(url: string | undefined): PrometheusClient | undefined {
-        const validated = validateUrl(url?.trim());
+    private clientForUrl(url: string | undefined, username?: string, password?: string): PrometheusClient | undefined {
+        const validated = validateUrl(url?.trim() || this.config.url);
         if (!validated) {
             return undefined;
         }
+        const user = username ?? (this.config.username || undefined);
         return new PrometheusClient({
             baseUrl: validated,
             timeoutMs: this.requestTimeoutMs(),
-            username: this.config.username || undefined,
-            password: this.config.password || undefined,
+            username: user || undefined,
+            password: user ? (password ?? this.config.password ?? "") : undefined,
         });
     }
 

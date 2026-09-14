@@ -6,6 +6,8 @@ import type { RawSourceConfig } from "./source-config";
 declare global {
     namespace ioBroker {
         interface AdapterConfig {
+            /** Base URL of the Prometheus server, e.g. http://host:9090 */
+            url: string;
             /** HTTP request timeout in seconds for all Prometheus API calls */
             requestTimeout: number;
             /** Optional basic auth user name applied to all sources */

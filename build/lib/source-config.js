@@ -87,34 +87,36 @@ function normalizeAggregation(aggregation) {
   const value = aggregation || "avg";
   return import_query_builder.AGGREGATIONS.includes(value) ? value : void 0;
 }
-function normalizeSources(rawSources) {
+function normalizeSources(rawSources, serverUrl) {
   const sources = [];
   const errors = [];
   const usedPaths = /* @__PURE__ */ new Set();
   if (!Array.isArray(rawSources)) {
     return { sources, errors };
   }
+  const url = validateUrl(serverUrl == null ? void 0 : serverUrl.trim());
+  if (!url) {
+    if (rawSources.some((raw) => raw.enabled !== false)) {
+      errors.push(
+        `invalid or missing Prometheus server URL "${serverUrl != null ? serverUrl : ""}" (expected e.g. http://host:9090)`
+      );
+    }
+    return { sources, errors };
+  }
   rawSources.forEach((raw, index) => {
-    var _a, _b, _c, _d, _e, _f, _g;
+    var _a, _b, _c, _d, _e;
     const name = ((_a = raw.name) == null ? void 0 : _a.trim()) || `Source ${index + 1}`;
     if (raw.enabled === false) {
       return;
     }
-    const url = validateUrl((_b = raw.url) == null ? void 0 : _b.trim());
-    if (!url) {
-      errors.push(
-        `${name}: invalid or missing Prometheus URL "${(_c = raw.url) != null ? _c : ""}" (expected e.g. http://host:9090)`
-      );
-      return;
-    }
-    const metric = (_d = raw.metric) == null ? void 0 : _d.trim();
+    const metric = (_b = raw.metric) == null ? void 0 : _b.trim();
     if (!metric) {
       errors.push(`${name}: no metric configured`);
       return;
     }
-    const aggregation = normalizeAggregation((_e = raw.aggregation) == null ? void 0 : _e.trim());
+    const aggregation = normalizeAggregation((_c = raw.aggregation) == null ? void 0 : _c.trim());
     if (!aggregation) {
-      errors.push(`${name}: unknown aggregation "${(_f = raw.aggregation) != null ? _f : ""}"`);
+      errors.push(`${name}: unknown aggregation "${(_d = raw.aggregation) != null ? _d : ""}"`);
       return;
     }
     const groupBy = aggregation === "none" ? [] : parseGroupBy(raw.groupBy);
@@ -125,7 +127,7 @@ function normalizeSources(rawSources) {
       errors.push(`${name}: ${error instanceof Error ? error.message : String(error)}`);
       return;
     }
-    let targetPath = sanitizeTargetPath(((_g = raw.targetPath) == null ? void 0 : _g.trim()) || name);
+    let targetPath = sanitizeTargetPath(((_e = raw.targetPath) == null ? void 0 : _e.trim()) || name);
     if (!targetPath) {
       targetPath = sanitizeIdSegment(name);
     }

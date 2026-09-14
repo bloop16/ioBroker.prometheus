@@ -14,7 +14,7 @@
         },
         "_info": {
             "type": "staticText",
-            "text": "Configure one or more Prometheus servers and queries. Metrics, labels and values are loaded live from the server - no PromQL knowledge required.",
+            "text": "Configure your Prometheus server once, then add any number of queries. Metrics, labels and values are loaded live from the server - no PromQL knowledge required. Save the configuration after changing the server settings so the live dropdowns use them.",
             "style": {
                 "marginBottom": 16
             },
@@ -23,6 +23,47 @@
             "md": 12,
             "lg": 12,
             "xl": 12
+        },
+        "_serverHeader": {
+            "type": "header",
+            "text": "Prometheus server",
+            "size": 4,
+            "xs": 12,
+            "sm": 12,
+            "md": 12,
+            "lg": 12,
+            "xl": 12
+        },
+        "url": {
+            "type": "text",
+            "label": "Prometheus URL",
+            "help": "Base URL of the Prometheus server, e.g. http://192.168.1.10:9090",
+            "xs": 12,
+            "sm": 12,
+            "md": 6,
+            "lg": 4,
+            "xl": 4
+        },
+        "username": {
+            "type": "text",
+            "label": "Username (optional)",
+            "help": "Optional basic auth user name",
+            "xs": 12,
+            "sm": 12,
+            "md": 3,
+            "lg": 2,
+            "xl": 2
+        },
+        "password": {
+            "type": "password",
+            "label": "Password (optional)",
+            "repeat": false,
+            "help": "Optional basic auth password",
+            "xs": 12,
+            "sm": 12,
+            "md": 3,
+            "lg": 2,
+            "xl": 2
         },
         "requestTimeout": {
             "type": "number",
@@ -33,30 +74,30 @@
             "help": "HTTP timeout for all Prometheus API requests",
             "xs": 12,
             "sm": 12,
-            "md": 4,
-            "lg": 3,
-            "xl": 3
+            "md": 3,
+            "lg": 2,
+            "xl": 2
         },
-        "username": {
-            "type": "text",
-            "label": "Username (optional)",
-            "help": "Basic auth user applied to all sources",
+        "_testConnection": {
+            "type": "sendTo",
+            "label": "Test connection",
+            "command": "testConnection",
+            "variant": "contained",
+            "showProcess": true,
+            "icon": "search",
+            "jsonData": "{\"url\": \"${data.url}\", \"username\": \"${data.username}\", \"password\": \"${data.password}\"}",
+            "result": {
+                "connected": {
+                    "en": "Connection successful",
+                    "de": "Verbindung erfolgreich"
+                }
+            },
             "xs": 12,
             "sm": 12,
-            "md": 4,
-            "lg": 3,
-            "xl": 3
-        },
-        "password": {
-            "type": "password",
-            "label": "Password (optional)",
-            "repeat": false,
-            "help": "Basic auth password applied to all sources. Save before using the live dropdowns.",
-            "xs": 12,
-            "sm": 12,
-            "md": 4,
-            "lg": 3,
-            "xl": 3
+            "md": 3,
+            "lg": 2,
+            "xl": 2,
+            "newLine": true
         },
         "_sourcesHeader": {
             "type": "header",
@@ -74,6 +115,9 @@
             "clone": true,
             "xs": 12,
             "sm": 12,
+            "md": 12,
+            "lg": 12,
+            "xl": 12,
             "items": [
                 {
                     "attr": "enabled",
@@ -99,18 +143,6 @@
                     "xl": 4
                 },
                 {
-                    "attr": "url",
-                    "type": "text",
-                    "label": "Prometheus URL",
-                    "default": "",
-                    "help": "Base URL of the Prometheus server, e.g. http://192.168.1.10:9090",
-                    "xs": 12,
-                    "sm": 12,
-                    "md": 5,
-                    "lg": 6,
-                    "xl": 6
-                },
-                {
                     "attr": "pollInterval",
                     "type": "number",
                     "label": "Poll interval (s)",
@@ -120,7 +152,7 @@
                     "help": "How often this query is executed (seconds)",
                     "xs": 12,
                     "sm": 12,
-                    "md": 4,
+                    "md": 5,
                     "lg": 3,
                     "xl": 3
                 },
@@ -132,27 +164,23 @@
                     "help": "States are written below this path, e.g. servers.nas. Empty = derived from name",
                     "xs": 12,
                     "sm": 12,
-                    "md": 8,
-                    "lg": 5,
-                    "xl": 5
+                    "md": 6,
+                    "lg": 3,
+                    "xl": 3,
+                    "newLine": true
                 },
                 {
                     "attr": "metric",
                     "type": "selectSendTo",
                     "label": "Metric",
                     "command": "getMetricNames",
-                    "jsonData": "{\"url\": \"${data.url}\"}",
-                    "alsoDependsOn": [
-                        "url"
-                    ],
                     "manual": false,
                     "noTranslation": true,
-                    "help": "Metric list is loaded live from the Prometheus server",
+                    "help": "Loaded live from the configured Prometheus server",
                     "xs": 12,
                     "sm": 12,
-                    "md": 12,
+                    "md": 6,
                     "lg": 4,
-                    "newLine": true,
                     "xl": 4
                 },
                 {
@@ -199,9 +227,8 @@
                     "label": "Group by labels",
                     "command": "getLabels",
                     "multiple": true,
-                    "jsonData": "{\"url\": \"${data.url}\", \"metric\": \"${data.metric}\"}",
+                    "jsonData": "{\"metric\": \"${data.metric}\"}",
                     "alsoDependsOn": [
-                        "url",
                         "metric",
                         "aggregation"
                     ],
@@ -222,19 +249,18 @@
                     "size": 5,
                     "xs": 12,
                     "sm": 12,
-                    "newLine": true,
                     "md": 12,
                     "lg": 12,
-                    "xl": 12
+                    "xl": 12,
+                    "newLine": true
                 },
                 {
                     "attr": "filter1Label",
                     "type": "selectSendTo",
                     "label": "Filter label",
                     "command": "getLabels",
-                    "jsonData": "{\"url\": \"${data.url}\", \"metric\": \"${data.metric}\"}",
+                    "jsonData": "{\"metric\": \"${data.metric}\"}",
                     "alsoDependsOn": [
-                        "url",
                         "metric"
                     ],
                     "manual": false,
@@ -251,9 +277,8 @@
                     "type": "selectSendTo",
                     "label": "Filter value",
                     "command": "getLabelValues",
-                    "jsonData": "{\"url\": \"${data.url}\", \"metric\": \"${data.metric}\", \"label\": \"${data.filter1Label}\"}",
+                    "jsonData": "{\"metric\": \"${data.metric}\", \"label\": \"${data.filter1Label}\"}",
                     "alsoDependsOn": [
-                        "url",
                         "metric",
                         "filter1Label"
                     ],
@@ -272,9 +297,8 @@
                     "type": "selectSendTo",
                     "label": "Filter label",
                     "command": "getLabels",
-                    "jsonData": "{\"url\": \"${data.url}\", \"metric\": \"${data.metric}\"}",
+                    "jsonData": "{\"metric\": \"${data.metric}\"}",
                     "alsoDependsOn": [
-                        "url",
                         "metric",
                         "filter1Label"
                     ],
@@ -285,17 +309,16 @@
                     "sm": 12,
                     "md": 6,
                     "lg": 3,
-                    "hidden": "!data.filter1Label",
-                    "xl": 3
+                    "xl": 3,
+                    "hidden": "!data.filter1Label"
                 },
                 {
                     "attr": "filter2Value",
                     "type": "selectSendTo",
                     "label": "Filter value",
                     "command": "getLabelValues",
-                    "jsonData": "{\"url\": \"${data.url}\", \"metric\": \"${data.metric}\", \"label\": \"${data.filter2Label}\"}",
+                    "jsonData": "{\"metric\": \"${data.metric}\", \"label\": \"${data.filter2Label}\"}",
                     "alsoDependsOn": [
-                        "url",
                         "metric",
                         "filter2Label"
                     ],
@@ -314,9 +337,8 @@
                     "type": "selectSendTo",
                     "label": "Filter label",
                     "command": "getLabels",
-                    "jsonData": "{\"url\": \"${data.url}\", \"metric\": \"${data.metric}\"}",
+                    "jsonData": "{\"metric\": \"${data.metric}\"}",
                     "alsoDependsOn": [
-                        "url",
                         "metric",
                         "filter2Label"
                     ],
@@ -327,17 +349,16 @@
                     "sm": 12,
                     "md": 6,
                     "lg": 3,
-                    "hidden": "!data.filter2Label",
-                    "xl": 3
+                    "xl": 3,
+                    "hidden": "!data.filter2Label"
                 },
                 {
                     "attr": "filter3Value",
                     "type": "selectSendTo",
                     "label": "Filter value",
                     "command": "getLabelValues",
-                    "jsonData": "{\"url\": \"${data.url}\", \"metric\": \"${data.metric}\", \"label\": \"${data.filter3Label}\"}",
+                    "jsonData": "{\"metric\": \"${data.metric}\", \"label\": \"${data.filter3Label}\"}",
                     "alsoDependsOn": [
-                        "url",
                         "metric",
                         "filter3Label"
                     ],
@@ -356,9 +377,8 @@
                     "type": "selectSendTo",
                     "label": "Filter label",
                     "command": "getLabels",
-                    "jsonData": "{\"url\": \"${data.url}\", \"metric\": \"${data.metric}\"}",
+                    "jsonData": "{\"metric\": \"${data.metric}\"}",
                     "alsoDependsOn": [
-                        "url",
                         "metric",
                         "filter3Label"
                     ],
@@ -369,17 +389,16 @@
                     "sm": 12,
                     "md": 6,
                     "lg": 3,
-                    "hidden": "!data.filter3Label",
-                    "xl": 3
+                    "xl": 3,
+                    "hidden": "!data.filter3Label"
                 },
                 {
                     "attr": "filter4Value",
                     "type": "selectSendTo",
                     "label": "Filter value",
                     "command": "getLabelValues",
-                    "jsonData": "{\"url\": \"${data.url}\", \"metric\": \"${data.metric}\", \"label\": \"${data.filter4Label}\"}",
+                    "jsonData": "{\"metric\": \"${data.metric}\", \"label\": \"${data.filter4Label}\"}",
                     "alsoDependsOn": [
-                        "url",
                         "metric",
                         "filter4Label"
                     ],
@@ -398,9 +417,8 @@
                     "type": "selectSendTo",
                     "label": "Filter label",
                     "command": "getLabels",
-                    "jsonData": "{\"url\": \"${data.url}\", \"metric\": \"${data.metric}\"}",
+                    "jsonData": "{\"metric\": \"${data.metric}\"}",
                     "alsoDependsOn": [
-                        "url",
                         "metric",
                         "filter4Label"
                     ],
@@ -411,17 +429,16 @@
                     "sm": 12,
                     "md": 6,
                     "lg": 3,
-                    "hidden": "!data.filter4Label",
-                    "xl": 3
+                    "xl": 3,
+                    "hidden": "!data.filter4Label"
                 },
                 {
                     "attr": "filter5Value",
                     "type": "selectSendTo",
                     "label": "Filter value",
                     "command": "getLabelValues",
-                    "jsonData": "{\"url\": \"${data.url}\", \"metric\": \"${data.metric}\", \"label\": \"${data.filter5Label}\"}",
+                    "jsonData": "{\"metric\": \"${data.metric}\", \"label\": \"${data.filter5Label}\"}",
                     "alsoDependsOn": [
-                        "url",
                         "metric",
                         "filter5Label"
                     ],
@@ -442,9 +459,8 @@
                     "command": "previewQuery",
                     "container": "div",
                     "copyToClipboard": true,
-                    "jsonData": "{\"url\": \"${data.url}\", \"metric\": \"${data.metric}\", \"aggregation\": \"${data.aggregation}\", \"groupBy\": \"${data.groupBy}\", \"filter1Label\": \"${data.filter1Label}\", \"filter1Value\": \"${data.filter1Value}\", \"filter2Label\": \"${data.filter2Label}\", \"filter2Value\": \"${data.filter2Value}\", \"filter3Label\": \"${data.filter3Label}\", \"filter3Value\": \"${data.filter3Value}\", \"filter4Label\": \"${data.filter4Label}\", \"filter4Value\": \"${data.filter4Value}\", \"filter5Label\": \"${data.filter5Label}\", \"filter5Value\": \"${data.filter5Value}\"}",
+                    "jsonData": "{\"metric\": \"${data.metric}\", \"aggregation\": \"${data.aggregation}\", \"groupBy\": \"${data.groupBy}\", \"filter1Label\": \"${data.filter1Label}\", \"filter1Value\": \"${data.filter1Value}\", \"filter2Label\": \"${data.filter2Label}\", \"filter2Value\": \"${data.filter2Value}\", \"filter3Label\": \"${data.filter3Label}\", \"filter3Value\": \"${data.filter3Value}\", \"filter4Label\": \"${data.filter4Label}\", \"filter4Value\": \"${data.filter4Value}\", \"filter5Label\": \"${data.filter5Label}\", \"filter5Value\": \"${data.filter5Value}\"}",
                     "alsoDependsOn": [
-                        "url",
                         "metric",
                         "aggregation",
                         "groupBy",
@@ -461,15 +477,12 @@
                     ],
                     "xs": 12,
                     "sm": 12,
-                    "newLine": true,
                     "md": 12,
                     "lg": 12,
-                    "xl": 12
+                    "xl": 12,
+                    "newLine": true
                 }
-            ],
-            "md": 12,
-            "lg": 12,
-            "xl": 12
+            ]
         }
     }
 }

@@ -21,7 +21,8 @@ community project and is not affiliated with or endorsed by the Prometheus proje
 
 ## Features
 
-* Any number of sources: each source combines one Prometheus server, one query and one poll interval
+* One centrally configured Prometheus server (URL, optional basic auth, connection test)
+* Any number of sources: each source combines one query and one poll interval
 * Visual query configuration:
   * **Metric** dropdown, loaded live from `/api/v1/label/__name__/values`
   * **Aggregation** dropdown: last value, average, sum, minimum, maximum, count of series
@@ -37,15 +38,14 @@ community project and is not affiliated with or endorsed by the Prometheus proje
 
 ## Configuration
 
-1. Add a source in the instance settings and enter the base URL of your Prometheus server
-   (e.g. `http://192.168.1.10:9090`).
-2. Pick a metric from the dropdown — the list is loaded live from the server.
+1. Enter the base URL of your Prometheus server (e.g. `http://192.168.1.10:9090` — a bare
+   `192.168.1.10:9090` works too) and use **Test connection** to verify it. If the server
+   requires HTTP basic auth, enter username and password. Save the configuration once so the
+   live dropdowns use the server settings.
+2. Add a source and pick a metric from the dropdown — the list is loaded live from the server.
 3. Choose an aggregation and optionally filters and group-by labels.
 4. Check the live preview: it shows the generated query and its current result.
 5. Choose a poll interval and (optionally) a target datapoint path, then save.
-
-If your Prometheus server requires HTTP basic auth, enter username and password in the global
-settings and save the configuration once before using the live dropdowns.
 
 ## Created states
 
@@ -65,7 +65,7 @@ For each source the adapter creates the following states below the configured ta
 ## Known limitations
 
 * States created for group-by label values that no longer exist are not deleted automatically.
-* Basic auth credentials are global and apply to all sources.
+* All sources query the single configured Prometheus server.
 
 ## Changelog
 <!--

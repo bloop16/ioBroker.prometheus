@@ -21,8 +21,6 @@ export interface RawSourceConfig {
     enabled?: boolean;
     /** Display name, also default for the datapoint path */
     name?: string;
-    /** Base URL of the Prometheus server */
-    url?: string;
     /** Poll interval in seconds */
     pollInterval?: number;
     /** Object id path below which states are written */
@@ -59,7 +57,7 @@ export interface RawSourceConfig {
 export interface NormalizedSource {
     /** Display name of the source */
     name: string;
-    /** Validated base URL of the Prometheus server */
+    /** Validated base URL of the Prometheus server (shared by all sources) */
     url: string;
     /** Poll interval in milliseconds, clamped to the allowed range */
     pollIntervalMs: number;
@@ -181,9 +179,10 @@ function normalizeAggregation(aggregation: string | undefined): Aggregation | un
  * cannot prevent the remaining sources from being polled.
  *
  * @param rawSources - The value of native.sources
+ * @param serverUrl - The globally configured Prometheus server URL
  * @returns The usable sources plus error messages for the rejected rows
  */
-export function normalizeSources(rawSources: RawSourceConfig[]): NormalizeResult {
+export function normalizeSources(rawSources: RawSourceConfig[], serverUrl: string | undefined): NormalizeResult {
     const sources: NormalizedSource[] = [];
     const errors: string[] = [];
     const usedPaths = new Set<string>();
@@ -192,17 +191,19 @@ export function normalizeSources(rawSources: RawSourceConfig[]): NormalizeResult
         return { sources, errors };
     }
 
+    const url = validateUrl(serverUrl?.trim());
+    if (!url) {
+        if (rawSources.some(raw => raw.enabled !== false)) {
+            errors.push(
+                `invalid or missing Prometheus server URL "${serverUrl ?? ""}" (expected e.g. http://host:9090)`,
+            );
+        }
+        return { sources, errors };
+    }
+
     rawSources.forEach((raw, index) => {
         const name = raw.name?.trim() || `Source ${index + 1}`;
         if (raw.enabled === false) {
-            return;
-        }
-
-        const url = validateUrl(raw.url?.trim());
-        if (!url) {
-            errors.push(
-                `${name}: invalid or missing Prometheus URL "${raw.url ?? ""}" (expected e.g. http://host:9090)`,
-            );
             return;
         }
 
