@@ -77,6 +77,8 @@ For each source the adapter creates the following states below the configured ta
 
 - (Martin Rauscher) initial release
 
+Older changes can be found in [CHANGELOG_OLD.md](CHANGELOG_OLD.md).
+
 ## License
 MIT License
 
