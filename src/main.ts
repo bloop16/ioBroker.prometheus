@@ -169,10 +169,18 @@ class Prometheus extends utils.Adapter {
         const { source } = polling;
         try {
             const samples = await polling.client.instantQuery(source.query);
-            await this.writeSamples(source, samples);
-            await this.setState(`${source.targetPath}.error`, "", true);
-            await this.setState(`${source.targetPath}.lastUpdate`, Date.now(), true);
+            // the server answered, so the connection is fine even if the
+            // query itself yields no usable data
             this.setSourceHealth(source, true);
+            try {
+                await this.writeSamples(source, samples);
+                await this.setState(`${source.targetPath}.error`, "", true);
+                await this.setState(`${source.targetPath}.lastUpdate`, Date.now(), true);
+            } catch (dataError) {
+                const message = this.errorText(dataError);
+                this.log.debug(`"${source.name}": ${message}`);
+                await this.setState(`${source.targetPath}.error`, message, true);
+            }
         } catch (error) {
             const message = this.errorText(error);
             this.log.warn(`Polling "${source.name}" failed: ${message}`);
