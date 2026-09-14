@@ -156,6 +156,9 @@ tests.integration(path.join(__dirname, ".."), {
                 if (!metricsText.includes("12.34")) {
                     throw new Error(`Exported value missing in /metrics output: ${metricsText}`);
                 }
+                if (!metricsText.includes("iobroker_exporter_scrapes_total 1")) {
+                    throw new Error(`Scrape counter missing in /metrics output: ${metricsText}`);
+                }
             });
         });
     },

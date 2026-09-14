@@ -47,5 +47,6 @@
     "Export this state to Prometheus": "Export this state to Prometheus",
     "Value is exposed on the /metrics endpoint of the adapter (exporter must be enabled in the instance settings)": "Value is exposed on the /metrics endpoint of the adapter (exporter must be enabled in the instance settings)",
     "Custom metric name (optional)": "Custom metric name (optional)",
-    "Allowed characters: letters, digits, underscore, colon. Empty = iobroker_state with the state id as label": "Allowed characters: letters, digits, underscore, colon. Empty = iobroker_state with the state id as label"
+    "Allowed characters: letters, digits, underscore, colon. Empty = iobroker_state with the state id as label": "Allowed characters: letters, digits, underscore, colon. Empty = iobroker_state with the state id as label",
+    "This state cannot be exported: Prometheus stores numbers only (numeric and boolean states are supported)": "This state cannot be exported: Prometheus stores numbers only (numeric and boolean states are supported)"
 }

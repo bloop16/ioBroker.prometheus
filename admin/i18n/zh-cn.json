@@ -46,6 +46,7 @@
     "Sum": "和",
     "Target datapoint path": "目标数据点路径",
     "Test connection": "测试连接",
+    "This state cannot be exported: Prometheus stores numbers only (numeric and boolean states are supported)": "该状态无法导出：Prometheus 仅存储数字（支持数字和布尔状态）",
     "Username (optional)": "用户名（可选）",
     "Value is exposed on the /metrics endpoint of the adapter (exporter must be enabled in the instance settings)": "值在适配器的 /metrics 端点上公开（必须在实例设置中启用导出器）"
 }

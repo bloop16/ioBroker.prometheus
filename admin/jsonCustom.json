@@ -2,10 +2,24 @@
     "i18n": true,
     "type": "panel",
     "items": {
+        "_typeHint": {
+            "type": "staticText",
+            "text": "This state cannot be exported: Prometheus stores numbers only (numeric and boolean states are supported)",
+            "hidden": "!(!!customObj && customObj.common.type !== 'number' && customObj.common.type !== 'boolean' && customObj.common.type !== 'mixed')",
+            "style": {
+                "color": "#c62828"
+            },
+            "xs": 12,
+            "sm": 12,
+            "md": 12,
+            "lg": 12,
+            "xl": 12
+        },
         "enabled": {
             "type": "checkbox",
             "label": "Export this state to Prometheus",
             "default": false,
+            "hidden": "!!customObj && customObj.common.type !== 'number' && customObj.common.type !== 'boolean' && customObj.common.type !== 'mixed'",
             "help": "Value is exposed on the /metrics endpoint of the adapter (exporter must be enabled in the instance settings)",
             "xs": 12,
             "sm": 12,
@@ -17,6 +31,7 @@
             "type": "text",
             "label": "Custom metric name (optional)",
             "default": "",
+            "hidden": "!data.enabled || (!!customObj && customObj.common.type !== 'number' && customObj.common.type !== 'boolean' && customObj.common.type !== 'mixed')",
             "help": "Allowed characters: letters, digits, underscore, colon. Empty = iobroker_state with the state id as label",
             "xs": 12,
             "sm": 12,

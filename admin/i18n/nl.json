@@ -46,6 +46,7 @@
     "Sum": "Som",
     "Target datapoint path": "Doeldatapuntpad",
     "Test connection": "Verbinding testen",
+    "This state cannot be exported: Prometheus stores numbers only (numeric and boolean states are supported)": "Deze status kan niet worden geëxporteerd: Prometheus slaat alleen getallen op (numerieke en Booleaanse staten worden ondersteund)",
     "Username (optional)": "Gebruikersnaam (optioneel)",
     "Value is exposed on the /metrics endpoint of the adapter (exporter must be enabled in the instance settings)": "Waarde wordt weergegeven op het /metrics-eindpunt van de adapter (de exporter moet zijn ingeschakeld in de exemplaarinstellingen)"
 }

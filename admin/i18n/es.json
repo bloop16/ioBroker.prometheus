@@ -46,6 +46,7 @@
     "Sum": "Suma",
     "Target datapoint path": "Ruta del punto de datos de destino",
     "Test connection": "Conexión de prueba",
+    "This state cannot be exported: Prometheus stores numbers only (numeric and boolean states are supported)": "Este estado no se puede exportar: Prometheus solo almacena números (se admiten estados numéricos y booleanos)",
     "Username (optional)": "Nombre de usuario (opcional)",
     "Value is exposed on the /metrics endpoint of the adapter (exporter must be enabled in the instance settings)": "El valor se expone en el punto final /metrics del adaptador (el exportador debe estar habilitado en la configuración de la instancia)"
 }

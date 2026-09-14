@@ -44,6 +44,9 @@ class Prometheus extends utils.Adapter {
   exporterServer;
   /** Ids of the states currently exported */
   exportedIds = /* @__PURE__ */ new Set();
+  /** Number of /metrics scrapes since adapter start */
+  scrapeCount = 0;
+  lastScrapeMs = 0;
   systemLanguage = "en";
   constructor(options = {}) {
     super({
@@ -467,13 +470,42 @@ class Prometheus extends utils.Adapter {
       }
     }
     await this.subscribeForeignObjectsAsync("*");
+    await this.setObjectNotExistsAsync("info.lastScrape", {
+      type: "state",
+      common: {
+        name: "Time of the last Prometheus scrape",
+        type: "number",
+        role: "date",
+        read: true,
+        write: false
+      },
+      native: {}
+    });
+    await this.setObjectNotExistsAsync("info.scrapeCount", {
+      type: "state",
+      common: { name: "Scrapes since adapter start", type: "number", role: "value", read: true, write: false },
+      native: {}
+    });
+    await this.setObjectNotExistsAsync("info.scrapeInterval", {
+      type: "state",
+      common: {
+        name: "Seconds between the last two scrapes",
+        type: "number",
+        role: "value.interval",
+        unit: "s",
+        read: true,
+        write: false
+      },
+      native: {}
+    });
     const port = this.exporterPort();
     const bind = ((_d = this.config.bind) == null ? void 0 : _d.trim()) || "0.0.0.0";
     this.exporterServer = http.createServer((req, res) => {
       var _a2;
       if (((_a2 = req.url) == null ? void 0 : _a2.split("?")[0]) === "/metrics") {
+        this.recordScrape();
         res.writeHead(200, { "Content-Type": "text/plain; version=0.0.4; charset=utf-8" });
-        res.end(this.registry.render());
+        res.end(this.registry.render() + this.selfMetrics());
       } else {
         res.writeHead(404, { "Content-Type": "text/plain" });
         res.end("Not found. Metrics are available at /metrics\n");
@@ -497,17 +529,24 @@ class Prometheus extends utils.Adapter {
    * @param custom.metricName - Optional custom metric name for this state
    */
   async trackState(id, custom) {
-    var _a;
+    var _a, _b;
     try {
       const obj = await this.getForeignObjectAsync(id);
       if ((obj == null ? void 0 : obj.type) !== "state") {
+        return;
+      }
+      const commonType = (_a = obj.common) == null ? void 0 : _a.type;
+      if (commonType && !["number", "boolean", "mixed"].includes(commonType)) {
+        this.log.warn(
+          `Cannot export state ${id}: type "${commonType}" is not numeric (Prometheus stores numbers only)`
+        );
         return;
       }
       const state = await this.getForeignStateAsync(id);
       this.registry.set(id, {
         name: this.stateName(obj) || id,
         value: (0, import_exporter.toMetricValue)(state == null ? void 0 : state.val),
-        metricName: ((_a = custom.metricName) == null ? void 0 : _a.trim()) || void 0
+        metricName: ((_b = custom.metricName) == null ? void 0 : _b.trim()) || void 0
       });
       if (!this.exportedIds.has(id)) {
         this.exportedIds.add(id);
@@ -576,6 +615,28 @@ class Prometheus extends utils.Adapter {
     } else {
       void this.untrackState(id);
     }
+  }
+  /** Tracks one /metrics scrape and mirrors the statistics into info states */
+  recordScrape() {
+    const now = Date.now();
+    this.scrapeCount++;
+    const intervalSec = this.lastScrapeMs > 0 ? Math.round((now - this.lastScrapeMs) / 1e3) : null;
+    this.lastScrapeMs = now;
+    void this.setState("info.lastScrape", now, true);
+    void this.setState("info.scrapeCount", this.scrapeCount, true);
+    if (intervalSec !== null) {
+      void this.setState("info.scrapeInterval", intervalSec, true);
+    }
+  }
+  /** Metrics about the exporter itself, appended to every /metrics response */
+  selfMetrics() {
+    return `# HELP iobroker_exporter_scrapes_total Scrapes since adapter start
+# TYPE iobroker_exporter_scrapes_total counter
+iobroker_exporter_scrapes_total ${this.scrapeCount}
+# HELP iobroker_exporter_exported_states Number of exported states
+# TYPE iobroker_exporter_exported_states gauge
+iobroker_exporter_exported_states ${this.registry.size}
+`;
   }
   exporterPort() {
     const parsed = Number(this.config.port);

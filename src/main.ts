@@ -49,6 +49,9 @@ class Prometheus extends utils.Adapter {
     private exporterServer?: http.Server;
     /** Ids of the states currently exported */
     private readonly exportedIds = new Set<string>();
+    /** Number of /metrics scrapes since adapter start */
+    private scrapeCount = 0;
+    private lastScrapeMs = 0;
     private systemLanguage = "en";
 
     public constructor(options: Partial<utils.AdapterOptions> = {}) {
@@ -519,12 +522,42 @@ class Prometheus extends utils.Adapter {
         }
         await this.subscribeForeignObjectsAsync("*");
 
+        await this.setObjectNotExistsAsync("info.lastScrape", {
+            type: "state",
+            common: {
+                name: "Time of the last Prometheus scrape",
+                type: "number",
+                role: "date",
+                read: true,
+                write: false,
+            },
+            native: {},
+        });
+        await this.setObjectNotExistsAsync("info.scrapeCount", {
+            type: "state",
+            common: { name: "Scrapes since adapter start", type: "number", role: "value", read: true, write: false },
+            native: {},
+        });
+        await this.setObjectNotExistsAsync("info.scrapeInterval", {
+            type: "state",
+            common: {
+                name: "Seconds between the last two scrapes",
+                type: "number",
+                role: "value.interval",
+                unit: "s",
+                read: true,
+                write: false,
+            },
+            native: {},
+        });
+
         const port = this.exporterPort();
         const bind = this.config.bind?.trim() || "0.0.0.0";
         this.exporterServer = http.createServer((req, res) => {
             if (req.url?.split("?")[0] === "/metrics") {
+                this.recordScrape();
                 res.writeHead(200, { "Content-Type": "text/plain; version=0.0.4; charset=utf-8" });
-                res.end(this.registry.render());
+                res.end(this.registry.render() + this.selfMetrics());
             } else {
                 res.writeHead(404, { "Content-Type": "text/plain" });
                 res.end("Not found. Metrics are available at /metrics\n");
@@ -551,6 +584,13 @@ class Prometheus extends utils.Adapter {
         try {
             const obj = await this.getForeignObjectAsync(id);
             if (obj?.type !== "state") {
+                return;
+            }
+            const commonType = obj.common?.type;
+            if (commonType && !["number", "boolean", "mixed"].includes(commonType)) {
+                this.log.warn(
+                    `Cannot export state ${id}: type "${commonType}" is not numeric (Prometheus stores numbers only)`,
+                );
                 return;
             }
             const state = await this.getForeignStateAsync(id);
@@ -628,6 +668,31 @@ class Prometheus extends utils.Adapter {
         } else {
             void this.untrackState(id);
         }
+    }
+
+    /** Tracks one /metrics scrape and mirrors the statistics into info states */
+    private recordScrape(): void {
+        const now = Date.now();
+        this.scrapeCount++;
+        const intervalSec = this.lastScrapeMs > 0 ? Math.round((now - this.lastScrapeMs) / 1000) : null;
+        this.lastScrapeMs = now;
+        void this.setState("info.lastScrape", now, true);
+        void this.setState("info.scrapeCount", this.scrapeCount, true);
+        if (intervalSec !== null) {
+            void this.setState("info.scrapeInterval", intervalSec, true);
+        }
+    }
+
+    /** Metrics about the exporter itself, appended to every /metrics response */
+    private selfMetrics(): string {
+        return (
+            "# HELP iobroker_exporter_scrapes_total Scrapes since adapter start\n" +
+            "# TYPE iobroker_exporter_scrapes_total counter\n" +
+            `iobroker_exporter_scrapes_total ${this.scrapeCount}\n` +
+            "# HELP iobroker_exporter_exported_states Number of exported states\n" +
+            "# TYPE iobroker_exporter_exported_states gauge\n" +
+            `iobroker_exporter_exported_states ${this.registry.size}\n`
+        );
     }
 
     private exporterPort(): number {
