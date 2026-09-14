@@ -26,7 +26,8 @@ __export(source_config_exports, {
   normalizeSources: () => normalizeSources,
   parseGroupBy: () => parseGroupBy,
   sanitizeIdSegment: () => sanitizeIdSegment,
-  sanitizeTargetPath: () => sanitizeTargetPath
+  sanitizeTargetPath: () => sanitizeTargetPath,
+  validateUrl: () => validateUrl
 });
 module.exports = __toCommonJS(source_config_exports);
 var import_query_builder = require("./query-builder");
@@ -82,7 +83,7 @@ function validateUrl(url) {
   }
 }
 function normalizeAggregation(aggregation) {
-  const value = aggregation != null ? aggregation : "none";
+  const value = aggregation || "avg";
   return import_query_builder.AGGREGATIONS.includes(value) ? value : void 0;
 }
 function normalizeSources(rawSources) {
@@ -150,6 +151,7 @@ function normalizeSources(rawSources) {
   normalizeSources,
   parseGroupBy,
   sanitizeIdSegment,
-  sanitizeTargetPath
+  sanitizeTargetPath,
+  validateUrl
 });
 //# sourceMappingURL=source-config.js.map

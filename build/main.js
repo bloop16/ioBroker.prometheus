@@ -182,11 +182,19 @@ class Prometheus extends utils.Adapter {
       await this.setState(`${source.targetPath}.value`, samples[0].value, true);
       return;
     }
+    const usedKeys = /* @__PURE__ */ new Set();
     for (const sample of samples) {
       const key = source.groupBy.map((label) => {
         var _a;
         return (0, import_source_config.sanitizeIdSegment)((_a = sample.labels[label]) != null ? _a : "unknown");
       }).join("_");
+      if (usedKeys.has(key)) {
+        this.log.warn(
+          `"${source.name}": series key "${key}" appears more than once after sanitizing the group-by label values; skipping the duplicate series`
+        );
+        continue;
+      }
+      usedKeys.add(key);
       const id = `${source.targetPath}.${key}`;
       await this.setObjectNotExistsAsync(id, {
         type: "state",
@@ -324,12 +332,12 @@ class Prometheus extends utils.Adapter {
    * @param url - Prometheus base URL as entered in the Admin UI
    */
   clientForUrl(url) {
-    const trimmed = url == null ? void 0 : url.trim();
-    if (!trimmed || !/^https?:\/\//.test(trimmed)) {
+    const validated = (0, import_source_config.validateUrl)(url == null ? void 0 : url.trim());
+    if (!validated) {
       return void 0;
     }
     return new import_prometheus_client.PrometheusClient({
-      baseUrl: trimmed.replace(/\/+$/, ""),
+      baseUrl: validated,
       timeoutMs: this.requestTimeoutMs(),
       username: this.config.username || void 0,
       password: this.config.password || void 0

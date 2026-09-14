@@ -59,7 +59,7 @@ class PrometheusClient {
     var _a;
     const data = await this.request("/api/v1/query", { query });
     if ((data == null ? void 0 : data.resultType) === "scalar" && Array.isArray(data.result)) {
-      return [{ labels: {}, value: Number(data.result[1]) }];
+      return [{ labels: {}, value: Number(data.result[1]) }].filter((sample) => Number.isFinite(sample.value));
     }
     if ((data == null ? void 0 : data.resultType) === "vector" && Array.isArray(data.result)) {
       return data.result.filter(isVectorEntry).map((entry) => {
@@ -68,7 +68,7 @@ class PrometheusClient {
           labels: (_a2 = entry.metric) != null ? _a2 : {},
           value: Number(entry.value[1])
         };
-      });
+      }).filter((sample) => Number.isFinite(sample.value));
     }
     throw new Error(`Unexpected query result type "${(_a = data == null ? void 0 : data.resultType) != null ? _a : "unknown"}"`);
   }

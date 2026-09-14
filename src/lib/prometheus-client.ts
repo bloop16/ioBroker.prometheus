@@ -89,14 +89,20 @@ export class PrometheusClient {
         const data = (await this.request("/api/v1/query", { query })) as PromQueryData | undefined;
 
         if (data?.resultType === "scalar" && Array.isArray(data.result)) {
-            return [{ labels: {}, value: Number(data.result[1]) }];
+            return [{ labels: {}, value: Number(data.result[1]) }].filter(sample => Number.isFinite(sample.value));
         }
 
         if (data?.resultType === "vector" && Array.isArray(data.result)) {
-            return data.result.filter(isVectorEntry).map(entry => ({
-                labels: entry.metric ?? {},
-                value: Number(entry.value[1]),
-            }));
+            return (
+                data.result
+                    .filter(isVectorEntry)
+                    .map(entry => ({
+                        labels: entry.metric ?? {},
+                        value: Number(entry.value[1]),
+                    }))
+                    // Prometheus can return NaN/+Inf/-Inf; those are not usable as state values
+                    .filter(sample => Number.isFinite(sample.value))
+            );
         }
 
         throw new Error(`Unexpected query result type "${data?.resultType ?? "unknown"}"`);

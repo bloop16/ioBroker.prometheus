@@ -202,7 +202,8 @@
                     "jsonData": "{\"url\": \"${data.url}\", \"metric\": \"${data.metric}\"}",
                     "alsoDependsOn": [
                         "url",
-                        "metric"
+                        "metric",
+                        "aggregation"
                     ],
                     "manual": false,
                     "noTranslation": true,
@@ -274,7 +275,8 @@
                     "jsonData": "{\"url\": \"${data.url}\", \"metric\": \"${data.metric}\"}",
                     "alsoDependsOn": [
                         "url",
-                        "metric"
+                        "metric",
+                        "filter1Label"
                     ],
                     "manual": false,
                     "noTranslation": true,
@@ -315,7 +317,8 @@
                     "jsonData": "{\"url\": \"${data.url}\", \"metric\": \"${data.metric}\"}",
                     "alsoDependsOn": [
                         "url",
-                        "metric"
+                        "metric",
+                        "filter2Label"
                     ],
                     "manual": false,
                     "noTranslation": true,
@@ -356,7 +359,8 @@
                     "jsonData": "{\"url\": \"${data.url}\", \"metric\": \"${data.metric}\"}",
                     "alsoDependsOn": [
                         "url",
-                        "metric"
+                        "metric",
+                        "filter3Label"
                     ],
                     "manual": false,
                     "noTranslation": true,
@@ -397,7 +401,8 @@
                     "jsonData": "{\"url\": \"${data.url}\", \"metric\": \"${data.metric}\"}",
                     "alsoDependsOn": [
                         "url",
-                        "metric"
+                        "metric",
+                        "filter4Label"
                     ],
                     "manual": false,
                     "noTranslation": true,

@@ -145,7 +145,13 @@ function clampPollIntervalMs(pollInterval: unknown): number {
     return Math.floor(seconds * 1000);
 }
 
-function validateUrl(url: string | undefined): string | undefined {
+/**
+ * Validates a Prometheus base URL (http/https only)
+ *
+ * @param url - The URL as entered in the Admin UI
+ * @returns The URL without trailing slashes, or undefined if unusable
+ */
+export function validateUrl(url: string | undefined): string | undefined {
     if (!url) {
         return undefined;
     }
@@ -161,7 +167,8 @@ function validateUrl(url: string | undefined): string | undefined {
 }
 
 function normalizeAggregation(aggregation: string | undefined): Aggregation | undefined {
-    const value = (aggregation ?? "none") as Aggregation;
+    // an empty value falls back to the Admin UI default for new rows
+    const value = (aggregation || "avg") as Aggregation;
     return AGGREGATIONS.includes(value) ? value : undefined;
 }
 

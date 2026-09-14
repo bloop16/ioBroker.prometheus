@@ -13,6 +13,7 @@ import {
     normalizeSources,
     parseGroupBy,
     sanitizeIdSegment,
+    validateUrl,
     type NormalizedSource,
     type RawSourceConfig,
 } from "./lib/source-config";
@@ -198,8 +199,17 @@ class Prometheus extends utils.Adapter {
             return;
         }
 
+        const usedKeys = new Set<string>();
         for (const sample of samples) {
             const key = source.groupBy.map(label => sanitizeIdSegment(sample.labels[label] ?? "unknown")).join("_");
+            if (usedKeys.has(key)) {
+                this.log.warn(
+                    `"${source.name}": series key "${key}" appears more than once after sanitizing ` +
+                        "the group-by label values; skipping the duplicate series",
+                );
+                continue;
+            }
+            usedKeys.add(key);
             const id = `${source.targetPath}.${key}`;
             await this.setObjectNotExistsAsync(id, {
                 type: "state",
@@ -355,12 +365,12 @@ class Prometheus extends utils.Adapter {
      * @param url - Prometheus base URL as entered in the Admin UI
      */
     private clientForUrl(url: string | undefined): PrometheusClient | undefined {
-        const trimmed = url?.trim();
-        if (!trimmed || !/^https?:\/\//.test(trimmed)) {
+        const validated = validateUrl(url?.trim());
+        if (!validated) {
             return undefined;
         }
         return new PrometheusClient({
-            baseUrl: trimmed.replace(/\/+$/, ""),
+            baseUrl: validated,
             timeoutMs: this.requestTimeoutMs(),
             username: this.config.username || undefined,
             password: this.config.password || undefined,

@@ -41,6 +41,22 @@ describe("prometheus-client => instantQuery", () => {
         expect(samples).to.deep.equal([{ labels: {}, value: 42 }]);
     });
 
+    it("drops non-finite sample values (NaN, Inf)", async () => {
+        const { client } = clientWithResponse({
+            status: "success",
+            data: {
+                resultType: "vector",
+                result: [
+                    { metric: { instance: "a" }, value: [1726000000, "NaN"] },
+                    { metric: { instance: "b" }, value: [1726000000, "+Inf"] },
+                    { metric: { instance: "c" }, value: [1726000000, "3"] },
+                ],
+            },
+        });
+        const samples = await client.instantQuery("up");
+        expect(samples).to.deep.equal([{ labels: { instance: "c" }, value: 3 }]);
+    });
+
     it("returns an empty list for an empty vector", async () => {
         const { client } = clientWithResponse({
             status: "success",

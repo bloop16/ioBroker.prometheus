@@ -1,5 +1,11 @@
 import { expect } from "chai";
-import { normalizeSources, sanitizeIdSegment, sanitizeTargetPath, type RawSourceConfig } from "./source-config";
+import {
+    normalizeSources,
+    sanitizeIdSegment,
+    sanitizeTargetPath,
+    validateUrl,
+    type RawSourceConfig,
+} from "./source-config";
 
 function rawSource(overrides: Partial<RawSourceConfig> = {}): RawSourceConfig {
     return {
@@ -106,6 +112,12 @@ describe("source-config => normalizeSources", () => {
         expect(result.errors[0]).to.match(/url/i);
     });
 
+    it("falls back to the Admin UI default aggregation when the value is empty", () => {
+        const result = normalizeSources([rawSource({ aggregation: "" })]);
+        expect(result.errors).to.be.empty;
+        expect(result.sources[0].query).to.equal("avg(node_cpu_seconds_total)");
+    });
+
     it("reports an error when the metric is missing", () => {
         const result = normalizeSources([rawSource({ metric: "" })]);
         expect(result.sources).to.be.empty;
@@ -128,5 +140,19 @@ describe("source-config => normalizeSources", () => {
         const result = normalizeSources(undefined as unknown as RawSourceConfig[]);
         expect(result.sources).to.be.empty;
         expect(result.errors).to.be.empty;
+    });
+});
+
+describe("source-config => validateUrl", () => {
+    it("accepts http/https URLs and strips trailing slashes", () => {
+        expect(validateUrl("http://prom:9090/")).to.equal("http://prom:9090");
+        expect(validateUrl("https://prom.example")).to.equal("https://prom.example");
+    });
+
+    it("rejects other protocols, malformed URLs and empty input", () => {
+        expect(validateUrl("ftp://nope")).to.equal(undefined);
+        expect(validateUrl("http://exa mple")).to.equal(undefined);
+        expect(validateUrl("")).to.equal(undefined);
+        expect(validateUrl(undefined)).to.equal(undefined);
     });
 });
