@@ -1,0 +1,103 @@
+{
+    "common": {
+        "name": "prometheus",
+        "version": "0.0.1",
+        "news": {
+            "0.0.1": {
+                "en": "initial release",
+                "de": "Erstveröffentlichung",
+                "ru": "Начальная версия",
+                "pt": "lançamento inicial",
+                "nl": "Eerste uitgave",
+                "fr": "Première version",
+                "it": "Versione iniziale",
+                "es": "Versión inicial",
+                "pl": "Pierwsze wydanie",
+                "uk": "Початкова версія",
+                "zh-cn": "首次出版"
+            }
+        },
+        "titleLang": {
+            "en": "Prometheus",
+            "de": "Prometheus",
+            "ru": "Прометей",
+            "pt": "Prometeu",
+            "nl": "Prometheus",
+            "fr": "Prométhée",
+            "it": "Prometeo",
+            "es": "Prometeo",
+            "pl": "Prometeusz",
+            "uk": "Прометей",
+            "zh-cn": "普罗米修斯"
+        },
+        "desc": {
+            "en": "Polls Prometheus HTTP APIs and stores aggregated query results as states",
+            "de": "Fragt Prometheus-HTTP-APIs ab und speichert aggregierte Abfrageergebnisse als Status",
+            "ru": "Опрашивает HTTP API Prometheus и сохраняет агрегированные результаты запросов в виде состояний.",
+            "pt": "Pesquisa APIs HTTP do Prometheus e armazena resultados de consultas agregadas como estados",
+            "nl": "Polls Prometheus HTTP API's en slaat geaggregeerde queryresultaten op als statussen",
+            "fr": "Interroge les API HTTP Prometheus et stocke les résultats de requête agrégés sous forme d'états",
+            "it": "Esegue il polling delle API HTTP di Prometheus e archivia i risultati delle query aggregati come stati",
+            "es": "Encuesta las API HTTP de Prometheus y almacena los resultados de consultas agregados como estados",
+            "pl": "Odpytuje interfejsy API HTTP Prometheus i przechowuje zagregowane wyniki zapytań jako stany",
+            "uk": "Опитує Prometheus HTTP API і зберігає агреговані результати запитів як стани",
+            "zh-cn": "轮询 Prometheus HTTP API 并将聚合查询结果存储为状态"
+        },
+        "authors": ["Martin Rauscher <bloop16@hotmail.com>"],
+        "keywords": ["prometheus", "monitoring", "metrics", "promql", "grafana"],
+        "licenseInformation": {
+            "type": "free",
+            "license": "MIT"
+        },
+        "platform": "Javascript/Node.js",
+        "icon": "prometheus.png",
+        "enabled": true,
+        "extIcon": "https://raw.githubusercontent.com/bloop16/ioBroker.prometheus/main/admin/prometheus.png",
+        "readme": "https://github.com/bloop16/ioBroker.prometheus/blob/main/README.md",
+        "loglevel": "info",
+        "tier": 3,
+        "mode": "daemon",
+        "type": "misc-data",
+        "compact": true,
+        "connectionType": "local",
+        "dataSource": "poll",
+        "adminUI": {
+            "config": "json"
+        },
+        "dependencies": [
+            {
+                "js-controller": ">=6.0.11"
+            }
+        ],
+        "globalDependencies": [
+            {
+                "admin": ">=7.0.23"
+            }
+        ]
+    },
+    "native": {},
+    "objects": [],
+    "instanceObjects": [
+        {
+            "_id": "info",
+            "type": "channel",
+            "common": {
+                "name": "Information"
+            },
+            "native": {}
+        },
+        {
+            "_id": "info.connection",
+            "type": "state",
+            "common": {
+                "role": "indicator.connected",
+                "name": "Device or service connected",
+                "type": "boolean",
+                "read": true,
+                "write": false,
+                "def": false
+            },
+            "native": {}
+        }
+    ]
+}
