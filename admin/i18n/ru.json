@@ -32,7 +32,7 @@
     "Prometheus server": "Прометей сервер",
     "Request timeout (s)": "Тайм-аут запроса (с)",
     "Sources": "Источники",
-    "States are written below this path, e.g. servers.nas. Empty = derived from name": "Состояния записываются под этим путем, например. server.nas. Пусто = получено из имени",
+    "States are written below metrics.<path>, e.g. servers.nas. Empty = derived from name": "Состояния записываются под метриками.<путь>, например. server.nas. Пусто = получено из имени",
     "Sum": "Сумма",
     "Target datapoint path": "Путь к целевой точке данных",
     "Test connection": "Тестовое соединение",

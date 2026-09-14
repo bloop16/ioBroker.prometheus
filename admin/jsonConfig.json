@@ -161,7 +161,7 @@
                     "type": "text",
                     "label": "Target datapoint path",
                     "default": "",
-                    "help": "States are written below this path, e.g. servers.nas. Empty = derived from name",
+                    "help": "States are written below metrics.<path>, e.g. servers.nas. Empty = derived from name",
                     "xs": 12,
                     "sm": 12,
                     "md": 6,
@@ -181,7 +181,8 @@
                     "sm": 12,
                     "md": 6,
                     "lg": 4,
-                    "xl": 4
+                    "xl": 4,
+                    "jsonData": "{\"url\": \"${globalData.url}\"}"
                 },
                 {
                     "attr": "aggregation",
@@ -227,7 +228,7 @@
                     "label": "Group by labels",
                     "command": "getLabels",
                     "multiple": true,
-                    "jsonData": "{\"metric\": \"${data.metric}\"}",
+                    "jsonData": "{\"metric\": \"${data.metric}\", \"url\": \"${globalData.url}\"}",
                     "alsoDependsOn": [
                         "metric",
                         "aggregation"
@@ -259,7 +260,7 @@
                     "type": "selectSendTo",
                     "label": "Filter label",
                     "command": "getLabels",
-                    "jsonData": "{\"metric\": \"${data.metric}\"}",
+                    "jsonData": "{\"metric\": \"${data.metric}\", \"url\": \"${globalData.url}\"}",
                     "alsoDependsOn": [
                         "metric"
                     ],
@@ -277,7 +278,7 @@
                     "type": "selectSendTo",
                     "label": "Filter value",
                     "command": "getLabelValues",
-                    "jsonData": "{\"metric\": \"${data.metric}\", \"label\": \"${data.filter1Label}\"}",
+                    "jsonData": "{\"metric\": \"${data.metric}\", \"label\": \"${data.filter1Label}\", \"url\": \"${globalData.url}\"}",
                     "alsoDependsOn": [
                         "metric",
                         "filter1Label"
@@ -297,7 +298,7 @@
                     "type": "selectSendTo",
                     "label": "Filter label",
                     "command": "getLabels",
-                    "jsonData": "{\"metric\": \"${data.metric}\"}",
+                    "jsonData": "{\"metric\": \"${data.metric}\", \"url\": \"${globalData.url}\"}",
                     "alsoDependsOn": [
                         "metric",
                         "filter1Label"
@@ -317,7 +318,7 @@
                     "type": "selectSendTo",
                     "label": "Filter value",
                     "command": "getLabelValues",
-                    "jsonData": "{\"metric\": \"${data.metric}\", \"label\": \"${data.filter2Label}\"}",
+                    "jsonData": "{\"metric\": \"${data.metric}\", \"label\": \"${data.filter2Label}\", \"url\": \"${globalData.url}\"}",
                     "alsoDependsOn": [
                         "metric",
                         "filter2Label"
@@ -337,7 +338,7 @@
                     "type": "selectSendTo",
                     "label": "Filter label",
                     "command": "getLabels",
-                    "jsonData": "{\"metric\": \"${data.metric}\"}",
+                    "jsonData": "{\"metric\": \"${data.metric}\", \"url\": \"${globalData.url}\"}",
                     "alsoDependsOn": [
                         "metric",
                         "filter2Label"
@@ -357,7 +358,7 @@
                     "type": "selectSendTo",
                     "label": "Filter value",
                     "command": "getLabelValues",
-                    "jsonData": "{\"metric\": \"${data.metric}\", \"label\": \"${data.filter3Label}\"}",
+                    "jsonData": "{\"metric\": \"${data.metric}\", \"label\": \"${data.filter3Label}\", \"url\": \"${globalData.url}\"}",
                     "alsoDependsOn": [
                         "metric",
                         "filter3Label"
@@ -377,7 +378,7 @@
                     "type": "selectSendTo",
                     "label": "Filter label",
                     "command": "getLabels",
-                    "jsonData": "{\"metric\": \"${data.metric}\"}",
+                    "jsonData": "{\"metric\": \"${data.metric}\", \"url\": \"${globalData.url}\"}",
                     "alsoDependsOn": [
                         "metric",
                         "filter3Label"
@@ -397,7 +398,7 @@
                     "type": "selectSendTo",
                     "label": "Filter value",
                     "command": "getLabelValues",
-                    "jsonData": "{\"metric\": \"${data.metric}\", \"label\": \"${data.filter4Label}\"}",
+                    "jsonData": "{\"metric\": \"${data.metric}\", \"label\": \"${data.filter4Label}\", \"url\": \"${globalData.url}\"}",
                     "alsoDependsOn": [
                         "metric",
                         "filter4Label"
@@ -417,7 +418,7 @@
                     "type": "selectSendTo",
                     "label": "Filter label",
                     "command": "getLabels",
-                    "jsonData": "{\"metric\": \"${data.metric}\"}",
+                    "jsonData": "{\"metric\": \"${data.metric}\", \"url\": \"${globalData.url}\"}",
                     "alsoDependsOn": [
                         "metric",
                         "filter4Label"
@@ -437,7 +438,7 @@
                     "type": "selectSendTo",
                     "label": "Filter value",
                     "command": "getLabelValues",
-                    "jsonData": "{\"metric\": \"${data.metric}\", \"label\": \"${data.filter5Label}\"}",
+                    "jsonData": "{\"metric\": \"${data.metric}\", \"label\": \"${data.filter5Label}\", \"url\": \"${globalData.url}\"}",
                     "alsoDependsOn": [
                         "metric",
                         "filter5Label"
@@ -459,7 +460,7 @@
                     "command": "previewQuery",
                     "container": "div",
                     "copyToClipboard": true,
-                    "jsonData": "{\"metric\": \"${data.metric}\", \"aggregation\": \"${data.aggregation}\", \"groupBy\": \"${data.groupBy}\", \"filter1Label\": \"${data.filter1Label}\", \"filter1Value\": \"${data.filter1Value}\", \"filter2Label\": \"${data.filter2Label}\", \"filter2Value\": \"${data.filter2Value}\", \"filter3Label\": \"${data.filter3Label}\", \"filter3Value\": \"${data.filter3Value}\", \"filter4Label\": \"${data.filter4Label}\", \"filter4Value\": \"${data.filter4Value}\", \"filter5Label\": \"${data.filter5Label}\", \"filter5Value\": \"${data.filter5Value}\"}",
+                    "jsonData": "{\"metric\": \"${data.metric}\", \"aggregation\": \"${data.aggregation}\", \"groupBy\": \"${data.groupBy}\", \"filter1Label\": \"${data.filter1Label}\", \"filter1Value\": \"${data.filter1Value}\", \"filter2Label\": \"${data.filter2Label}\", \"filter2Value\": \"${data.filter2Value}\", \"filter3Label\": \"${data.filter3Label}\", \"filter3Value\": \"${data.filter3Value}\", \"filter4Label\": \"${data.filter4Label}\", \"filter4Value\": \"${data.filter4Value}\", \"filter5Label\": \"${data.filter5Label}\", \"filter5Value\": \"${data.filter5Value}\", \"url\": \"${globalData.url}\"}",
                     "alsoDependsOn": [
                         "metric",
                         "aggregation",

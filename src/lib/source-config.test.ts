@@ -60,13 +60,18 @@ describe("source-config => normalizeSources", () => {
         expect(source.name).to.equal("Node CPU");
         expect(source.url).to.equal(SERVER);
         expect(source.pollIntervalMs).to.equal(60_000);
-        expect(source.targetPath).to.equal("Node_CPU");
+        expect(source.targetPath).to.equal("metrics.Node_CPU");
         expect(source.query).to.equal("avg(node_cpu_seconds_total)");
     });
 
-    it("uses the configured target path when present", () => {
+    it("places the configured target path below the metrics channel", () => {
         const result = normalize([rawSource({ targetPath: "servers.nas.cpu" })]);
-        expect(result.sources[0].targetPath).to.equal("servers.nas.cpu");
+        expect(result.sources[0].targetPath).to.equal("metrics.servers.nas.cpu");
+    });
+
+    it("does not double the metrics prefix when the user already entered it", () => {
+        const result = normalize([rawSource({ targetPath: "metrics.servers.cpu" })]);
+        expect(result.sources[0].targetPath).to.equal("metrics.servers.cpu");
     });
 
     it("collects filter slots into filters", () => {

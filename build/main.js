@@ -285,7 +285,7 @@ class Prometheus extends utils.Adapter {
       }
     } catch (error) {
       const text = this.errorText(error);
-      this.log.debug(`Command ${obj.command} failed: ${text}`);
+      this.log.warn(`Command ${obj.command} failed: ${text}`);
       if (obj.command === "previewQuery") {
         this.respond(obj, { text: `Error: ${text}` });
       } else if (obj.command === "testConnection") {
@@ -309,6 +309,9 @@ class Prometheus extends utils.Adapter {
   async listForDropdown(message, fetch) {
     const client = this.clientForUrl(message.url);
     if (!client) {
+      this.log.warn(
+        "Cannot load values for the Admin UI: no valid Prometheus server URL configured. Enter and save the server URL first."
+      );
       return [];
     }
     const values = await fetch(client);
@@ -351,8 +354,10 @@ class Prometheus extends utils.Adapter {
    * @param password - Basic auth password override, if provided
    */
   clientForUrl(url, username, password) {
-    var _a;
-    const validated = (0, import_source_config.validateUrl)((url == null ? void 0 : url.trim()) || this.config.url);
+    var _a, _b;
+    const fromMessage = url == null ? void 0 : url.trim();
+    const usable = fromMessage && !fromMessage.includes("${") && fromMessage !== "undefined" && fromMessage !== "null" ? fromMessage : void 0;
+    const validated = (_a = (0, import_source_config.validateUrl)(usable)) != null ? _a : (0, import_source_config.validateUrl)(this.config.url);
     if (!validated) {
       return void 0;
     }
@@ -361,7 +366,7 @@ class Prometheus extends utils.Adapter {
       baseUrl: validated,
       timeoutMs: this.requestTimeoutMs(),
       username: user || void 0,
-      password: user ? (_a = password != null ? password : this.config.password) != null ? _a : "" : void 0
+      password: user ? (_b = password != null ? password : this.config.password) != null ? _b : "" : void 0
     });
   }
   requestTimeoutMs() {

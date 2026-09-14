@@ -11,6 +11,9 @@ import { buildQuery, type Aggregation, type QueryFilter, AGGREGATIONS } from "./
 /** Number of filter slots offered by the Admin UI */
 export const FILTER_SLOT_COUNT = 5;
 
+/** All source states live below this channel, like other ioBroker adapters do */
+export const METRICS_CHANNEL = "metrics";
+
 export const MIN_POLL_INTERVAL_SEC = 5;
 export const MAX_POLL_INTERVAL_SEC = 86_400;
 export const DEFAULT_POLL_INTERVAL_SEC = 60;
@@ -232,6 +235,9 @@ export function normalizeSources(rawSources: RawSourceConfig[], serverUrl: strin
         let targetPath = sanitizeTargetPath(raw.targetPath?.trim() || name);
         if (!targetPath) {
             targetPath = sanitizeIdSegment(name);
+        }
+        if (targetPath !== METRICS_CHANNEL && !targetPath.startsWith(`${METRICS_CHANNEL}.`)) {
+            targetPath = `${METRICS_CHANNEL}.${targetPath}`;
         }
         while (usedPaths.has(targetPath)) {
             targetPath = `${targetPath}_${index}`;

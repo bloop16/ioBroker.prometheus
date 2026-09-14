@@ -32,7 +32,7 @@
     "Prometheus server": "Prometheus-Server",
     "Request timeout (s)": "Request-Timeout (s)",
     "Sources": "Quellen",
-    "States are written below this path, e.g. servers.nas. Empty = derived from name": "States werden unterhalb dieses Pfads geschrieben, z.B. servers.nas. Leer = aus dem Namen abgeleitet",
+    "States are written below metrics.<path>, e.g. servers.nas. Empty = derived from name": "States werden unterhalb von metrics.<Pfad> geschrieben, z.B. servers.nas. Leer = aus dem Namen abgeleitet",
     "Sum": "Summe",
     "Target datapoint path": "Ziel-Datenpunktpfad",
     "Test connection": "Verbindung testen",

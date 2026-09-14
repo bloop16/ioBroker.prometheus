@@ -49,8 +49,8 @@ community project and is not affiliated with or endorsed by the Prometheus proje
 
 ## Created states
 
-For each source the adapter creates the following states below the configured target path
-(or a path derived from the source name):
+For each source the adapter creates the following states below `metrics.<target path>`
+(the path is configurable per source and defaults to the source name):
 
 | State | Description |
 |-------|-------------|

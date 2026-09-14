@@ -32,7 +32,7 @@
     "Prometheus server": "Prometheus-server",
     "Request timeout (s)": "Time-out(s) aanvragen",
     "Sources": "Bronnen",
-    "States are written below this path, e.g. servers.nas. Empty = derived from name": "Onder dit pad worden toestanden geschreven, b.v. servers.nas. Leeg = afgeleid van naam",
+    "States are written below metrics.<path>, e.g. servers.nas. Empty = derived from name": "Statussen worden onder de statistieken geschreven.<pad>, b.v. servers.nas. Leeg = afgeleid van naam",
     "Sum": "Som",
     "Target datapoint path": "Doeldatapuntpad",
     "Test connection": "Verbinding testen",

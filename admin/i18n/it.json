@@ -32,7 +32,7 @@
     "Prometheus server": "Server Prometeo",
     "Request timeout (s)": "Richiedi timeout (s)",
     "Sources": "Fonti",
-    "States are written below this path, e.g. servers.nas. Empty = derived from name": "Gli stati sono scritti sotto questo percorso, ad es. server.nas. Vuoto = derivato dal nome",
+    "States are written below metrics.<path>, e.g. servers.nas. Empty = derived from name": "Gli stati sono scritti sotto metrics.<path>, ad es. server.nas. Vuoto = derivato dal nome",
     "Sum": "Somma",
     "Target datapoint path": "Percorso del punto dati di destinazione",
     "Test connection": "Testare la connessione",

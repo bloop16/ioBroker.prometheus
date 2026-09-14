@@ -296,7 +296,7 @@ class Prometheus extends utils.Adapter {
             }
         } catch (error) {
             const text = this.errorText(error);
-            this.log.debug(`Command ${obj.command} failed: ${text}`);
+            this.log.warn(`Command ${obj.command} failed: ${text}`);
             // Dropdown commands expect an array, the other commands expect an object
             if (obj.command === "previewQuery") {
                 this.respond(obj, { text: `Error: ${text}` });
@@ -326,6 +326,10 @@ class Prometheus extends utils.Adapter {
     ): Promise<Array<{ label: string; value: string }>> {
         const client = this.clientForUrl(message.url);
         if (!client) {
+            this.log.warn(
+                "Cannot load values for the Admin UI: no valid Prometheus server URL configured. " +
+                    "Enter and save the server URL first.",
+            );
             return [];
         }
         const values = await fetch(client);
@@ -384,7 +388,14 @@ class Prometheus extends utils.Adapter {
      * @param password - Basic auth password override, if provided
      */
     private clientForUrl(url: string | undefined, username?: string, password?: string): PrometheusClient | undefined {
-        const validated = validateUrl(url?.trim() || this.config.url);
+        // jsonData patterns may arrive unresolved (older Admin) or as the
+        // string "undefined" when the field is still empty - ignore those
+        const fromMessage = url?.trim();
+        const usable =
+            fromMessage && !fromMessage.includes("${") && fromMessage !== "undefined" && fromMessage !== "null"
+                ? fromMessage
+                : undefined;
+        const validated = validateUrl(usable) ?? validateUrl(this.config.url);
         if (!validated) {
             return undefined;
         }

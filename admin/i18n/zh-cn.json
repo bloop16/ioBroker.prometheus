@@ -32,7 +32,7 @@
     "Prometheus server": "普罗米修斯服务器",
     "Request timeout (s)": "请求超时（秒）",
     "Sources": "来源",
-    "States are written below this path, e.g. servers.nas. Empty = derived from name": "状态写在这条路径下面，例如服务器.nas。空=源自名称",
+    "States are written below metrics.<path>, e.g. servers.nas. Empty = derived from name": "状态写在metrics.<path>下面，例如服务器.nas。空=源自名称",
     "Sum": "和",
     "Target datapoint path": "目标数据点路径",
     "Test connection": "测试连接",

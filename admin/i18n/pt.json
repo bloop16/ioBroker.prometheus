@@ -32,7 +32,7 @@
     "Prometheus server": "Servidor Prometheus",
     "Request timeout (s)": "Solicitar tempo limite(s)",
     "Sources": "Fontes",
-    "States are written below this path, e.g. servers.nas. Empty = derived from name": "Os estados são escritos abaixo deste caminho, por ex. servidores.nas. Vazio = derivado do nome",
+    "States are written below metrics.<path>, e.g. servers.nas. Empty = derived from name": "Os estados são escritos abaixo de métricas.<caminho>, por exemplo. servidores.nas. Vazio = derivado do nome",
     "Sum": "Soma",
     "Target datapoint path": "Caminho do ponto de dados de destino",
     "Test connection": "Conexão de teste",

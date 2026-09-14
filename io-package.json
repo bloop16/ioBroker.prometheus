@@ -119,6 +119,14 @@
                 "def": false
             },
             "native": {}
+        },
+        {
+            "_id": "metrics",
+            "type": "folder",
+            "common": {
+                "name": "Metrics"
+            },
+            "native": {}
         }
     ]
 }

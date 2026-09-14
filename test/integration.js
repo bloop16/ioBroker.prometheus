@@ -83,7 +83,7 @@ tests.integration(path.join(__dirname, ".."), {
                 const value = await new Promise((resolve, reject) => {
                     const started = Date.now();
                     const check = () => {
-                        harness.states.getState("prometheus.0.mock.load.value", (err, state) => {
+                        harness.states.getState("prometheus.0.metrics.mock.load.value", (err, state) => {
                             if (err) {
                                 return reject(err);
                             }

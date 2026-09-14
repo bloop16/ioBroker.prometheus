@@ -18,7 +18,6 @@
     "Poll interval (s)": "Poll interval (s)",
     "How often this query is executed (seconds)": "How often this query is executed (seconds)",
     "Target datapoint path": "Target datapoint path",
-    "States are written below this path, e.g. servers.nas. Empty = derived from name": "States are written below this path, e.g. servers.nas. Empty = derived from name",
     "Metric": "Metric",
     "Loaded live from the configured Prometheus server": "Loaded live from the configured Prometheus server",
     "Aggregation": "Aggregation",
@@ -36,5 +35,6 @@
     "Prometheus label to filter on": "Prometheus label to filter on",
     "Filter value": "Filter value",
     "Only series with this label value are included": "Only series with this label value are included",
-    "Live preview": "Live preview"
+    "Live preview": "Live preview",
+    "States are written below metrics.<path>, e.g. servers.nas. Empty = derived from name": "States are written below metrics.<path>, e.g. servers.nas. Empty = derived from name"
 }

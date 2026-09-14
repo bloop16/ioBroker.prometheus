@@ -21,6 +21,7 @@ __export(source_config_exports, {
   DEFAULT_POLL_INTERVAL_SEC: () => DEFAULT_POLL_INTERVAL_SEC,
   FILTER_SLOT_COUNT: () => FILTER_SLOT_COUNT,
   MAX_POLL_INTERVAL_SEC: () => MAX_POLL_INTERVAL_SEC,
+  METRICS_CHANNEL: () => METRICS_CHANNEL,
   MIN_POLL_INTERVAL_SEC: () => MIN_POLL_INTERVAL_SEC,
   collectFilters: () => collectFilters,
   normalizeSources: () => normalizeSources,
@@ -32,6 +33,7 @@ __export(source_config_exports, {
 module.exports = __toCommonJS(source_config_exports);
 var import_query_builder = require("./query-builder");
 const FILTER_SLOT_COUNT = 5;
+const METRICS_CHANNEL = "metrics";
 const MIN_POLL_INTERVAL_SEC = 5;
 const MAX_POLL_INTERVAL_SEC = 86400;
 const DEFAULT_POLL_INTERVAL_SEC = 60;
@@ -131,6 +133,9 @@ function normalizeSources(rawSources, serverUrl) {
     if (!targetPath) {
       targetPath = sanitizeIdSegment(name);
     }
+    if (targetPath !== METRICS_CHANNEL && !targetPath.startsWith(`${METRICS_CHANNEL}.`)) {
+      targetPath = `${METRICS_CHANNEL}.${targetPath}`;
+    }
     while (usedPaths.has(targetPath)) {
       targetPath = `${targetPath}_${index}`;
     }
@@ -151,6 +156,7 @@ function normalizeSources(rawSources, serverUrl) {
   DEFAULT_POLL_INTERVAL_SEC,
   FILTER_SLOT_COUNT,
   MAX_POLL_INTERVAL_SEC,
+  METRICS_CHANNEL,
   MIN_POLL_INTERVAL_SEC,
   collectFilters,
   normalizeSources,
