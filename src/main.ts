@@ -6,19 +6,43 @@
 // you need to create an adapter
 import * as utils from "@iobroker/adapter-core";
 
-// Load your modules here, e.g.:
-// import * as fs from "fs";
+import { AGGREGATIONS, buildQuery, type Aggregation } from "./lib/query-builder";
+import { PrometheusClient, type PromSample } from "./lib/prometheus-client";
+import {
+    collectFilters,
+    normalizeSources,
+    parseGroupBy,
+    sanitizeIdSegment,
+    type NormalizedSource,
+    type RawSourceConfig,
+} from "./lib/source-config";
+
+const DEFAULT_REQUEST_TIMEOUT_SEC = 10;
+/** Maximum number of entries returned to Admin UI dropdowns */
+const MAX_DROPDOWN_ENTRIES = 2000;
+/** Maximum random startup delay so many instances do not poll in lockstep */
+const MAX_STARTUP_JITTER_MS = 5000;
+
+interface PollingSource {
+    source: NormalizedSource;
+    client: PrometheusClient;
+    inFlight: boolean;
+}
 
 class Prometheus extends utils.Adapter {
+    private pollIntervals: ioBroker.Interval[] = [];
+    private startupTimeouts: ioBroker.Timeout[] = [];
+    private isShuttingDown = false;
+    /** Health of each source (by target path), used for info.connection */
+    private sourceHealth = new Map<string, boolean>();
+
     public constructor(options: Partial<utils.AdapterOptions> = {}) {
         super({
             ...options,
             name: "prometheus",
         });
         this.on("ready", this.onReady.bind(this));
-        this.on("stateChange", this.onStateChange.bind(this));
-        // this.on("objectChange", this.onObjectChange.bind(this));
-        // this.on("message", this.onMessage.bind(this));
+        this.on("message", this.onMessage.bind(this));
         this.on("unload", this.onUnload.bind(this));
     }
 
@@ -26,62 +50,331 @@ class Prometheus extends utils.Adapter {
      * Is called when databases are connected and adapter received configuration.
      */
     private async onReady(): Promise<void> {
-        // Initialize your adapter here
+        await this.setState("info.connection", false, true);
 
-        // Reset the connection indicator during startup
-        this.setState("info.connection", false, true);
+        const { sources, errors } = normalizeSources(this.config.sources);
+        for (const error of errors) {
+            this.log.warn(`Ignoring misconfigured source - ${error}`);
+        }
+        if (sources.length === 0) {
+            this.log.info("No (valid) Prometheus sources configured. Please configure sources in the Admin UI.");
+            return;
+        }
 
-        // The adapters config (in the instance object everything under the attribute "native") is accessible via
-        // this.config:
+        for (const source of sources) {
+            try {
+                await this.ensureSourceObjects(source);
+            } catch (error) {
+                this.log.error(`Failed to create objects for "${source.name}": ${this.errorText(error)}`);
+                continue;
+            }
+            this.startPolling(source);
+        }
+    }
 
-        /*
-		For every state in the system there has to be also an object of type state
-		Here a simple template for a boolean variable named "testVariable"
-		Because every adapter instance uses its own unique namespace variable names can't collide with other adapters variables
+    /**
+     * Creates the object tree for one source (all levels explicitly)
+     *
+     * @param source - The validated source configuration
+     */
+    private async ensureSourceObjects(source: NormalizedSource): Promise<void> {
+        const segments = source.targetPath.split(".");
 
-		IMPORTANT: State roles should be chosen carefully based on the state's purpose.
-		           Please refer to the state roles documentation for guidance:
-		           https://www.iobroker.net/#en/documentation/dev/stateroles.md
-		*/
-        await this.setObjectNotExistsAsync("testVariable", {
+        // all intermediate levels as folders, the last level as channel
+        for (let depth = 0; depth < segments.length; depth++) {
+            const id = segments.slice(0, depth + 1).join(".");
+            const isLast = depth === segments.length - 1;
+            await this.setObjectNotExistsAsync(id, {
+                type: isLast ? "channel" : "folder",
+                common: { name: isLast ? source.name : segments[depth] },
+                native: {},
+            });
+        }
+
+        await this.setObjectNotExistsAsync(`${source.targetPath}.query`, {
             type: "state",
-            common: {
-                name: "testVariable",
-                type: "boolean",
-                role: "indicator",
-                read: true,
-                write: true,
-            },
+            common: { name: "Generated PromQL query", type: "string", role: "text", read: true, write: false },
             native: {},
         });
+        await this.setObjectNotExistsAsync(`${source.targetPath}.lastUpdate`, {
+            type: "state",
+            common: { name: "Last successful update", type: "number", role: "date", read: true, write: false },
+            native: {},
+        });
+        await this.setObjectNotExistsAsync(`${source.targetPath}.error`, {
+            type: "state",
+            common: { name: "Last error (empty if ok)", type: "string", role: "text", read: true, write: false },
+            native: {},
+        });
+        if (source.groupBy.length === 0) {
+            await this.setObjectNotExistsAsync(`${source.targetPath}.value`, {
+                type: "state",
+                common: { name: "Query result", type: "number", role: "value", read: true, write: false },
+                native: {},
+            });
+        }
 
-        // In order to get state updates, you need to subscribe to them. The following line adds a subscription for our variable we have created above.
-        this.subscribeStates("testVariable");
-        // You can also add a subscription for multiple states. The following line watches all states starting with "lights."
-        // this.subscribeStates("lights.*");
-        // Or, if you really must, you can also watch all states. Don't do this if you don't need to. Otherwise this will cause a lot of unnecessary load on the system:
-        // this.subscribeStates("*");
+        await this.setState(`${source.targetPath}.query`, source.query, true);
+    }
 
-        /*
-			setState examples
-			you will notice that each setState will cause the stateChange event to fire (because of above subscribeStates cmd)
-		*/
-        // the variable testVariable is set to true as command (ack=false)
-        await this.setState("testVariable", true);
+    /**
+     * Starts the poll timer for one source with a random startup jitter
+     *
+     * @param source - The validated source configuration
+     */
+    private startPolling(source: NormalizedSource): void {
+        const polling: PollingSource = {
+            source,
+            client: new PrometheusClient({
+                baseUrl: source.url,
+                timeoutMs: this.requestTimeoutMs(),
+                username: this.config.username || undefined,
+                password: this.config.password || undefined,
+            }),
+            inFlight: false,
+        };
 
-        // same thing, but the value is flagged "ack"
-        // ack should be always set to true if the value is received from or acknowledged from the target system
-        await this.setState("testVariable", { val: true, ack: true });
+        const jitter = Math.floor(Math.random() * MAX_STARTUP_JITTER_MS);
+        const startupTimeout = this.setTimeout(() => {
+            void this.pollSource(polling);
+            const interval = this.setInterval(() => void this.pollSource(polling), source.pollIntervalMs);
+            if (interval) {
+                this.pollIntervals.push(interval);
+            }
+        }, jitter);
+        if (startupTimeout) {
+            this.startupTimeouts.push(startupTimeout);
+        }
+        this.log.info(
+            `Polling "${source.name}" every ${source.pollIntervalMs / 1000}s: ${source.query} -> ${source.targetPath}`,
+        );
+    }
 
-        // same thing, but the state is deleted after 30s (getState will return null afterwards)
-        await this.setState("testVariable", { val: true, ack: true, expire: 30 });
+    /**
+     * Runs one poll cycle for one source; never throws
+     *
+     * @param polling - Poll state of the source
+     */
+    private async pollSource(polling: PollingSource): Promise<void> {
+        if (this.isShuttingDown || polling.inFlight) {
+            return;
+        }
+        polling.inFlight = true;
+        const { source } = polling;
+        try {
+            const samples = await polling.client.instantQuery(source.query);
+            await this.writeSamples(source, samples);
+            await this.setState(`${source.targetPath}.error`, "", true);
+            await this.setState(`${source.targetPath}.lastUpdate`, Date.now(), true);
+            this.setSourceHealth(source, true);
+        } catch (error) {
+            const message = this.errorText(error);
+            this.log.warn(`Polling "${source.name}" failed: ${message}`);
+            await this.setState(`${source.targetPath}.error`, message, true);
+            this.setSourceHealth(source, false);
+        } finally {
+            polling.inFlight = false;
+        }
+    }
 
-        // examples for the checkPassword/checkGroup functions
-        const pwdResult = await this.checkPasswordAsync("admin", "iobroker");
-        this.log.info(`check user admin pw iobroker: ${JSON.stringify(pwdResult)}`);
+    /**
+     * Writes the query result samples below the source's target path
+     *
+     * @param source - The validated source configuration
+     * @param samples - Samples returned by the instant query
+     */
+    private async writeSamples(source: NormalizedSource, samples: PromSample[]): Promise<void> {
+        if (source.groupBy.length === 0) {
+            if (samples.length === 0) {
+                throw new Error("Query returned no data");
+            }
+            if (samples.length > 1) {
+                this.log.debug(
+                    `"${source.name}" returned ${samples.length} series; writing the first one. ` +
+                        "Add an aggregation or filters for a deterministic result.",
+                );
+            }
+            await this.setState(`${source.targetPath}.value`, samples[0].value, true);
+            return;
+        }
 
-        const groupResult = await this.checkGroupAsync("admin", "admin");
-        this.log.info(`check group user admin group admin: ${JSON.stringify(groupResult)}`);
+        for (const sample of samples) {
+            const key = source.groupBy.map(label => sanitizeIdSegment(sample.labels[label] ?? "unknown")).join("_");
+            const id = `${source.targetPath}.${key}`;
+            await this.setObjectNotExistsAsync(id, {
+                type: "state",
+                common: {
+                    name: source.groupBy.map(label => `${label}=${sample.labels[label] ?? "?"}`).join(", "),
+                    type: "number",
+                    role: "value",
+                    read: true,
+                    write: false,
+                },
+                native: {},
+            });
+            await this.setState(id, sample.value, true);
+        }
+        if (samples.length === 0) {
+            this.log.debug(`"${source.name}" returned no series in this cycle`);
+        }
+    }
+
+    /**
+     * Tracks per-source health and aggregates it into info.connection
+     *
+     * @param source - The validated source configuration
+     * @param healthy - Whether the last poll succeeded
+     */
+    private setSourceHealth(source: NormalizedSource, healthy: boolean): void {
+        this.sourceHealth.set(source.targetPath, healthy);
+        const allHealthy = [...this.sourceHealth.values()].every(value => value);
+        void this.setState("info.connection", this.sourceHealth.size > 0 && allHealthy, true);
+    }
+
+    /**
+     * Handles requests from the Admin UI (dynamic dropdowns and live preview).
+     *
+     * @param obj - The received ioBroker message
+     */
+    private onMessage(obj: ioBroker.Message): void {
+        if (!obj?.command) {
+            return;
+        }
+        void this.handleMessage(obj);
+    }
+
+    private async handleMessage(obj: ioBroker.Message): Promise<void> {
+        const message = (typeof obj.message === "object" && obj.message !== null ? obj.message : {}) as Record<
+            string,
+            string
+        >;
+        try {
+            switch (obj.command) {
+                case "getMetricNames":
+                    this.respond(obj, await this.listForDropdown(message, client => client.metricNames()));
+                    break;
+                case "getLabels":
+                    this.respond(
+                        obj,
+                        await this.listForDropdown(message, client => client.labelNames(message.metric?.trim())),
+                    );
+                    break;
+                case "getLabelValues":
+                    this.respond(
+                        obj,
+                        await this.listForDropdown(message, client =>
+                            client.labelValues(message.label ?? "", message.metric?.trim()),
+                        ),
+                    );
+                    break;
+                case "previewQuery":
+                    this.respond(obj, await this.previewQuery(message));
+                    break;
+                default:
+                    this.log.warn(`Unknown command: ${obj.command}`);
+                    this.respond(obj, { error: `Unknown command: ${obj.command}` });
+            }
+        } catch (error) {
+            const text = this.errorText(error);
+            this.log.debug(`Command ${obj.command} failed: ${text}`);
+            // Dropdown commands expect an array, previewQuery expects a text object
+            this.respond(obj, obj.command === "previewQuery" ? { text: `Error: ${text}` } : []);
+        }
+    }
+
+    private respond(obj: ioBroker.Message, result: unknown): void {
+        if (obj.callback) {
+            this.sendTo(obj.from, obj.command, result, obj.callback);
+        }
+    }
+
+    /**
+     * Fetches a string list and converts it into selectSendTo options
+     *
+     * @param message - Payload of the Admin UI request
+     * @param fetch - Function fetching the string list from the client
+     */
+    private async listForDropdown(
+        message: Record<string, string>,
+        fetch: (client: PrometheusClient) => Promise<string[]>,
+    ): Promise<Array<{ label: string; value: string }>> {
+        const client = this.clientForUrl(message.url);
+        if (!client) {
+            return [];
+        }
+        const values = await fetch(client);
+        return values
+            .sort((a, b) => a.localeCompare(b))
+            .slice(0, MAX_DROPDOWN_ENTRIES)
+            .map(value => ({ label: value, value }));
+    }
+
+    /**
+     * Builds the PromQL query from the (possibly unsaved) row data and runs it once
+     *
+     * @param message - Payload of the Admin UI request
+     */
+    private async previewQuery(message: Record<string, string>): Promise<{ text: string }> {
+        const metric = message.metric?.trim();
+        const client = this.clientForUrl(message.url);
+        if (!client || !metric) {
+            return { text: "Configure URL and metric first" };
+        }
+
+        const aggregation = (
+            AGGREGATIONS.includes(message.aggregation as Aggregation) ? message.aggregation : "none"
+        ) as Aggregation;
+        const raw = message as RawSourceConfig;
+        const query = buildQuery({
+            metric,
+            filters: collectFilters(raw),
+            aggregation,
+            groupBy: aggregation === "none" ? [] : parseGroupBy(message.groupBy),
+        });
+
+        const samples = await client.instantQuery(query);
+        const values =
+            samples.length === 0
+                ? "no data"
+                : samples
+                      .slice(0, 10)
+                      .map(sample => {
+                          const labels = Object.entries(sample.labels)
+                              .map(([key, value]) => `${key}=${value}`)
+                              .join(",");
+                          return labels ? `{${labels}}: ${sample.value}` : String(sample.value);
+                      })
+                      .join(" | ");
+        const suffix = samples.length > 10 ? ` (+${samples.length - 10} more)` : "";
+        return { text: `${query}  =>  ${values}${suffix}` };
+    }
+
+    /**
+     * Creates a client for a URL coming from the Admin UI, or undefined if the URL is unusable
+     *
+     * @param url - Prometheus base URL as entered in the Admin UI
+     */
+    private clientForUrl(url: string | undefined): PrometheusClient | undefined {
+        const trimmed = url?.trim();
+        if (!trimmed || !/^https?:\/\//.test(trimmed)) {
+            return undefined;
+        }
+        return new PrometheusClient({
+            baseUrl: trimmed.replace(/\/+$/, ""),
+            timeoutMs: this.requestTimeoutMs(),
+            username: this.config.username || undefined,
+            password: this.config.password || undefined,
+        });
+    }
+
+    private requestTimeoutMs(): number {
+        const parsed = Number(this.config.requestTimeout);
+        const seconds = Number.isFinite(parsed) && parsed >= 1 ? Math.min(parsed, 300) : DEFAULT_REQUEST_TIMEOUT_SEC;
+        return Math.floor(seconds * 1000);
+    }
+
+    private errorText(error: unknown): string {
+        return error instanceof Error ? error.message : String(error);
     }
 
     /**
@@ -90,75 +383,24 @@ class Prometheus extends utils.Adapter {
      * @param callback - Callback function
      */
     private onUnload(callback: () => void): void {
+        this.isShuttingDown = true;
         try {
-            // Here you must clear all timeouts or intervals that may still be active
-            // clearTimeout(timeout1);
-            // clearTimeout(timeout2);
-            // ...
-            // clearInterval(interval1);
-
+            for (const timeout of this.startupTimeouts) {
+                this.clearTimeout(timeout);
+            }
+            this.startupTimeouts = [];
+            for (const interval of this.pollIntervals) {
+                this.clearInterval(interval);
+            }
+            this.pollIntervals = [];
             callback();
         } catch (error) {
-            this.log.error(`Error during unloading: ${(error as Error).message}`);
+            this.log.error(`Error during unloading: ${this.errorText(error)}`);
             callback();
         }
     }
-
-    // If you need to react to object changes, uncomment the following block and the corresponding line in the constructor.
-    // You also need to subscribe to the objects with `this.subscribeObjects`, similar to `this.subscribeStates`.
-    // /**
-    //  * Is called if a subscribed object changes
-    //  */
-    // private onObjectChange(id: string, obj: ioBroker.Object | null | undefined): void {
-    //     if (obj) {
-    //         // The object was changed
-    //         this.log.info(`object ${id} changed: ${JSON.stringify(obj)}`);
-    //     } else {
-    //         // The object was deleted
-    //         this.log.info(`object ${id} deleted`);
-    //     }
-    // }
-
-    /**
-     * Is called if a subscribed state changes
-     *
-     * @param id - State ID
-     * @param state - State object
-     */
-    private onStateChange(id: string, state: ioBroker.State | null | undefined): void {
-        if (state) {
-            // The state was changed
-            this.log.info(`state ${id} changed: ${state.val} (ack = ${state.ack})`);
-
-            if (state.ack === false) {
-                // This is a command from the user (e.g., from the UI or other adapter)
-                // and should be processed by the adapter
-                this.log.info(`User command received for ${id}: ${state.val}`);
-
-                // TODO: Add your control logic here
-            }
-        } else {
-            // The object was deleted or the state value has expired
-            this.log.info(`state ${id} deleted`);
-        }
-    }
-    // If you need to accept messages in your adapter, uncomment the following block and the corresponding line in the constructor.
-    // /**
-    //  * Some message was sent to this instance over message box. Used by email, pushover, text2speech, ...
-    //  * Using this method requires "common.messagebox" property to be set to true in io-package.json
-    //  */
-    //
-    // private onMessage(obj: ioBroker.Message): void {
-    //     if (typeof obj === "object" && obj.message) {
-    //         if (obj.command === "send") {
-    //             // e.g. send email or pushover or whatever
-    //             this.log.info("send command");
-    //             // Send response in callback if required
-    //             if (obj.callback) this.sendTo(obj.from, obj.command, "Message received", obj.callback);
-    //         }
-    //     }
-    // }
 }
+
 if (require.main !== module) {
     // Export the constructor in compact mode
     module.exports = (options: Partial<utils.AdapterOptions> | undefined) => new Prometheus(options);

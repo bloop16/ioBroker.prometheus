@@ -19,6 +19,9 @@
         // This is necessary for the automatic typing of the adapter config
         "resolveJsonModule": true,
 
+        // Type definitions for mocha/chai based unit tests (src/**/*.test.ts)
+        "types": ["node", "iobroker", "mocha", "chai", "chai-as-promised", "sinon-chai"],
+
         // If you want to disable the stricter type checks (not recommended), uncomment the following line
         // "strict": false,
         // And enable some of those features for more fine-grained control

@@ -43,8 +43,16 @@
             "uk": "Опитує Prometheus HTTP API і зберігає агреговані результати запитів як стани",
             "zh-cn": "轮询 Prometheus HTTP API 并将聚合查询结果存储为状态"
         },
-        "authors": ["Martin Rauscher <bloop16@hotmail.com>"],
-        "keywords": ["prometheus", "monitoring", "metrics", "promql", "grafana"],
+        "authors": [
+            "Martin Rauscher <bloop16@hotmail.com>"
+        ],
+        "keywords": [
+            "prometheus",
+            "monitoring",
+            "metrics",
+            "promql",
+            "grafana"
+        ],
         "licenseInformation": {
             "type": "free",
             "license": "MIT"
@@ -64,6 +72,7 @@
         "adminUI": {
             "config": "json"
         },
+        "messagebox": true,
         "dependencies": [
             {
                 "js-controller": ">=6.0.11"
@@ -75,7 +84,18 @@
             }
         ]
     },
-    "native": {},
+    "native": {
+        "requestTimeout": 10,
+        "username": "",
+        "password": "",
+        "sources": []
+    },
+    "encryptedNative": [
+        "password"
+    ],
+    "protectedNative": [
+        "password"
+    ],
     "objects": [],
     "instanceObjects": [
         {
