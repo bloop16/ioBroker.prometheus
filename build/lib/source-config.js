@@ -23,6 +23,7 @@ __export(source_config_exports, {
   MAX_POLL_INTERVAL_SEC: () => MAX_POLL_INTERVAL_SEC,
   METRICS_CHANNEL: () => METRICS_CHANNEL,
   MIN_POLL_INTERVAL_SEC: () => MIN_POLL_INTERVAL_SEC,
+  cleanAdminValue: () => cleanAdminValue,
   collectFilters: () => collectFilters,
   normalizeSources: () => normalizeSources,
   parseGroupBy: () => parseGroupBy,
@@ -37,6 +38,13 @@ const METRICS_CHANNEL = "metrics";
 const MIN_POLL_INTERVAL_SEC = 5;
 const MAX_POLL_INTERVAL_SEC = 86400;
 const DEFAULT_POLL_INTERVAL_SEC = 60;
+function cleanAdminValue(value) {
+  const trimmed = value == null ? void 0 : value.trim();
+  if (!trimmed || trimmed === "null" || trimmed === "undefined" || trimmed.includes("${")) {
+    return void 0;
+  }
+  return trimmed;
+}
 function sanitizeIdSegment(segment) {
   const sanitized = segment.replace(/[^a-zA-Z0-9_-]/g, "_").replace(/^_+/, "");
   return sanitized.length > 0 ? sanitized : "source";
@@ -158,6 +166,7 @@ function normalizeSources(rawSources, serverUrl) {
   MAX_POLL_INTERVAL_SEC,
   METRICS_CHANNEL,
   MIN_POLL_INTERVAL_SEC,
+  cleanAdminValue,
   collectFilters,
   normalizeSources,
   parseGroupBy,

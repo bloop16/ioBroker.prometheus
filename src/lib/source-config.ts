@@ -81,6 +81,23 @@ export interface NormalizeResult {
 }
 
 /**
+ * Cleans a value that arrived through an Admin UI jsonData template.
+ *
+ * Empty fields resolve to the strings "null"/"undefined" in template
+ * literals, and older Admin versions may pass patterns through unresolved.
+ *
+ * @param value - The raw string from the Admin UI message
+ * @returns The usable value, or undefined if it is a template artifact
+ */
+export function cleanAdminValue(value: string | undefined): string | undefined {
+    const trimmed = value?.trim();
+    if (!trimmed || trimmed === "null" || trimmed === "undefined" || trimmed.includes("${")) {
+        return undefined;
+    }
+    return trimmed;
+}
+
+/**
  * Sanitizes one object id segment to the characters recommended for ioBroker ids
  *
  * @param segment - One object id segment (no dots)

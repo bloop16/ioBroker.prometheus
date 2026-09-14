@@ -239,7 +239,16 @@ class Prometheus extends utils.Adapter {
     void this.handleMessage(obj);
   }
   async handleMessage(obj) {
-    const message = typeof obj.message === "object" && obj.message !== null ? obj.message : {};
+    const raw = typeof obj.message === "object" && obj.message !== null ? obj.message : {};
+    const message = Object.fromEntries(
+      Object.entries(raw).map(([key, value]) => {
+        var _a;
+        return [
+          key,
+          typeof value === "string" ? (_a = (0, import_source_config.cleanAdminValue)(value)) != null ? _a : "" : value
+        ];
+      })
+    );
     try {
       switch (obj.command) {
         case "testConnection": {

@@ -1,5 +1,6 @@
 import { expect } from "chai";
 import {
+    cleanAdminValue,
     normalizeSources,
     sanitizeIdSegment,
     sanitizeTargetPath,
@@ -180,5 +181,21 @@ describe("source-config => validateUrl", () => {
         expect(validateUrl("http://exa mple")).to.equal(undefined);
         expect(validateUrl("")).to.equal(undefined);
         expect(validateUrl(undefined)).to.equal(undefined);
+    });
+});
+
+describe("source-config => cleanAdminValue", () => {
+    it("passes real values through", () => {
+        expect(cleanAdminValue("node_load1")).to.equal("node_load1");
+        expect(cleanAdminValue("instance")).to.equal("instance");
+    });
+
+    it("treats Admin template artifacts as absent", () => {
+        // empty fields resolve to the strings "null"/"undefined" in jsonData templates
+        expect(cleanAdminValue("null")).to.equal(undefined);
+        expect(cleanAdminValue("undefined")).to.equal(undefined);
+        expect(cleanAdminValue("${globalData.url}")).to.equal(undefined);
+        expect(cleanAdminValue("")).to.equal(undefined);
+        expect(cleanAdminValue(undefined)).to.equal(undefined);
     });
 });

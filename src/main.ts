@@ -9,6 +9,7 @@ import * as utils from "@iobroker/adapter-core";
 import { AGGREGATIONS, buildQuery, type Aggregation } from "./lib/query-builder";
 import { PrometheusClient, type PromSample } from "./lib/prometheus-client";
 import {
+    cleanAdminValue,
     collectFilters,
     normalizeSources,
     parseGroupBy,
@@ -254,10 +255,17 @@ class Prometheus extends utils.Adapter {
     }
 
     private async handleMessage(obj: ioBroker.Message): Promise<void> {
-        const message = (typeof obj.message === "object" && obj.message !== null ? obj.message : {}) as Record<
+        const raw = (typeof obj.message === "object" && obj.message !== null ? obj.message : {}) as Record<
             string,
             string
         >;
+        // values arriving via jsonData templates may be "null"/"undefined" strings
+        const message = Object.fromEntries(
+            Object.entries(raw).map(([key, value]) => [
+                key,
+                typeof value === "string" ? (cleanAdminValue(value) ?? "") : value,
+            ]),
+        ) as Record<string, string>;
         try {
             switch (obj.command) {
                 case "testConnection": {
