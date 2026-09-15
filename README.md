@@ -12,9 +12,10 @@
 
 ## prometheus adapter for ioBroker
 
-Polls one or more [Prometheus](https://prometheus.io/) servers via the Prometheus HTTP API and
-stores aggregated query results as ioBroker states — fully configurable in the Admin UI,
-**no PromQL knowledge required**.
+Connects ioBroker with [Prometheus](https://prometheus.io/) in both directions: it polls your
+Prometheus server via the HTTP API and stores aggregated query results as ioBroker states, and
+it can expose selected ioBroker states on a `/metrics` endpoint for scraping by Prometheus.
+Everything is configured visually in the Admin UI — **no PromQL knowledge required**.
 
 **Prometheus® is a registered trademark of The Linux Foundation. This adapter is an independent
 community project and is not affiliated with or endorsed by the Prometheus project or The Linux Foundation.**
@@ -37,6 +38,11 @@ community project and is not affiliated with or endorsed by the Prometheus proje
 * Robust polling: an unreachable Prometheus server never crashes the adapter; the error is logged,
   written to the `error` state and polling continues with the next cycle
 * Optional HTTP basic auth (applied to all sources)
+* **Pull exporter** (separately activatable): exposes selected ioBroker states on a `/metrics`
+  endpoint — datapoints are chosen in the object settings of each state, like with the
+  influxdb/history adapters
+* Scrape statistics: `info.lastScrape`, `info.scrapeCount` and `info.scrapeInterval` show how
+  often Prometheus actually scrapes the endpoint
 * Compact mode supported
 
 ## Configuration
@@ -59,7 +65,9 @@ them — like a node exporter for your smart home.
 1. Enable the exporter in the instance settings (port, default `9126`).
 2. Open the object settings of any numeric or boolean datapoint and enable
    **Export this state to Prometheus** on the adapter's tab. Optionally set a custom metric
-   name (default: `iobroker_state` with the state id and name as labels).
+   name (default: `iobroker_state` with the state id and name as labels). Non-numeric states
+   (strings, objects) cannot be exported — Prometheus stores numbers only — and the option is
+   hidden for them. Changes take effect immediately, no adapter restart needed.
 3. Add a scrape job to your `prometheus.yml`:
 
 ```yaml
@@ -72,6 +80,11 @@ scrape_configs:
 Prometheus stores every scrape as a time series sample, so history and Grafana dashboards work
 out of the box. Note that values changing faster than the scrape interval are sampled, not
 recorded completely; booleans are exported as 0/1.
+
+The endpoint also serves the self-metrics `iobroker_exporter_scrapes_total` and
+`iobroker_exporter_exported_states`, and the adapter mirrors the scrape statistics into the
+states `info.lastScrape`, `info.scrapeCount` and `info.scrapeInterval` so you can verify the
+actual scrape frequency directly in ioBroker.
 
 ## Created states
 
@@ -86,7 +99,9 @@ For each source the adapter creates the following states below `metrics.<target 
 | `lastUpdate` | Timestamp of the last successful update |
 | `error` | Last error message; empty while everything is ok |
 
-`info.connection` is `true` while all enabled sources are reachable.
+`info.connection` is `true` while all enabled sources are reachable (a query returning no
+data does not count as a connection problem). With the exporter enabled, `info.lastScrape`,
+`info.scrapeCount` and `info.scrapeInterval` reflect the scrapes by your Prometheus server.
 
 ## Known limitations
 
@@ -99,9 +114,14 @@ For each source the adapter creates the following states below `metrics.<target 
     ### **WORK IN PROGRESS**
 -->
 
-### 0.0.1 (2026-09-14)
+### 0.0.1 (2026-09-15)
 
 - (Martin Rauscher) initial release
+- visual query builder: live metric/label/value dropdowns, metric overview, aggregation,
+  filters, group-by and live preview - no PromQL knowledge required
+- per-source poll interval; group-by results create one state per label value combination
+- pull exporter: expose selected ioBroker states on /metrics (per-datapoint activation in the
+  object settings), including scrape statistics
 
 Older changes can be found in [CHANGELOG_OLD.md](CHANGELOG_OLD.md).
 

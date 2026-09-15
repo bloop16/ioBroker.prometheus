@@ -4,17 +4,17 @@
         "version": "0.0.1",
         "news": {
             "0.0.1": {
-                "en": "initial release",
-                "de": "Erstveröffentlichung",
-                "ru": "Начальная версия",
-                "pt": "lançamento inicial",
-                "nl": "Eerste uitgave",
-                "fr": "Première version",
-                "it": "Versione iniziale",
-                "es": "Versión inicial",
-                "pl": "Pierwsze wydanie",
-                "uk": "Початкова версія",
-                "zh-cn": "首次出版"
+                "en": "Initial release: visual query builder with live dropdowns and preview, per-source poll intervals, group-by states, and a pull exporter that exposes selected ioBroker states on /metrics",
+                "de": "Erstveröffentlichung: visueller Query-Builder mit Live-Dropdowns und Vorschau, Abfrageintervall pro Quelle, Group-by-States sowie Pull-Exporter, der ausgewählte ioBroker-States auf /metrics bereitstellt",
+                "ru": "Первоначальный выпуск: визуальный построитель запросов с раскрывающимися списками в реальном времени и предварительным просмотром, интервалами опроса для каждого источника, состояниями группировки и экспортером по запросу, который отображает выбранные состояния ioBroker в /metrics.",
+                "pt": "Versão inicial: construtor de consulta visual com menus suspensos e visualização ao vivo, intervalos de pesquisa por fonte, estados agrupados e um exportador pull que expõe estados selecionados do ioBroker em /metrics",
+                "nl": "Eerste release: visuele querybouwer met live vervolgkeuzelijsten en preview, poll-intervallen per bron, group-by-statussen en een pull-exporter die geselecteerde ioBroker-statussen op /metrics zichtbaar maakt",
+                "fr": "Version initiale : générateur de requêtes visuelles avec listes déroulantes et aperçu en direct, intervalles d'interrogation par source, états groupés et exportateur d'extraction qui expose les états ioBroker sélectionnés sur /metrics",
+                "it": "Versione iniziale: generatore di query visive con menu a discesa e anteprima in tempo reale, intervalli di poll per fonte, stati raggruppati e un esportatore pull che espone gli stati ioBroker selezionati su /metrics",
+                "es": "Lanzamiento inicial: generador de consultas visuales con menús desplegables en vivo y vista previa, intervalos de sondeo por fuente, estados agrupados y un exportador de extracción que expone estados seleccionados de ioBroker en /metrics",
+                "pl": "Wersja początkowa: wizualny kreator zapytań z listami rozwijanymi na żywo i podglądem, interwałami odpytywania dla poszczególnych źródeł, stanami grupowania i eksporterem ściągania, który udostępnia wybrane stany ioBroker w /metrics",
+                "uk": "Початковий випуск: візуальний конструктор запитів із розкривними меню в реальному часі та попереднім переглядом, інтервалами опитування для кожного джерела, станами групування та експортером залучення, який показує вибрані стани ioBroker у /metrics",
+                "zh-cn": "初始版本：可视化查询生成器，具有实时下拉列表和预览、每个源轮询间隔、分组状态以及在 /metrics 上公开选定 ioBroker 状态的拉取导出器"
             }
         },
         "titleLang": {
@@ -31,17 +31,17 @@
             "zh-cn": "普罗米修斯"
         },
         "desc": {
-            "en": "Polls Prometheus HTTP APIs and stores aggregated query results as states",
-            "de": "Fragt Prometheus-HTTP-APIs ab und speichert aggregierte Abfrageergebnisse als Status",
-            "ru": "Опрашивает HTTP API Prometheus и сохраняет агрегированные результаты запросов в виде состояний.",
-            "pt": "Pesquisa APIs HTTP do Prometheus e armazena resultados de consultas agregadas como estados",
-            "nl": "Polls Prometheus HTTP API's en slaat geaggregeerde queryresultaten op als statussen",
-            "fr": "Interroge les API HTTP Prometheus et stocke les résultats de requête agrégés sous forme d'états",
-            "it": "Esegue il polling delle API HTTP di Prometheus e archivia i risultati delle query aggregati come stati",
-            "es": "Encuesta las API HTTP de Prometheus y almacena los resultados de consultas agregados como estados",
-            "pl": "Odpytuje interfejsy API HTTP Prometheus i przechowuje zagregowane wyniki zapytań jako stany",
-            "uk": "Опитує Prometheus HTTP API і зберігає агреговані результати запитів як стани",
-            "zh-cn": "轮询 Prometheus HTTP API 并将聚合查询结果存储为状态"
+            "en": "Connects ioBroker with Prometheus in both directions: polls PromQL query results into states (visual query builder, no PromQL needed) and exposes selected states on a /metrics endpoint",
+            "de": "Verbindet ioBroker mit Prometheus in beide Richtungen: holt PromQL-Abfrageergebnisse als States (visueller Query-Builder, kein PromQL nötig) und stellt ausgewählte States auf einem /metrics-Endpoint bereit",
+            "ru": "Соединяет ioBroker с Prometheus в обоих направлениях: опрашивает результаты запроса PromQL по состояниям (визуальный построитель запросов, PromQL не требуется) и предоставляет выбранные состояния в конечной точке /metrics.",
+            "pt": "Conecta ioBroker com Prometheus em ambas as direções: pesquisa os resultados da consulta PromQL em estados (construtor de consulta visual, sem necessidade de PromQL) e expõe estados selecionados em um endpoint /metrics",
+            "nl": "Verbindt ioBroker met Prometheus in beide richtingen: peilt PromQL-queryresultaten naar statussen (visuele querybuilder, geen PromQL nodig) en toont geselecteerde statussen op een /metrics-eindpunt",
+            "fr": "Connecte ioBroker à Prometheus dans les deux sens : interroge les résultats de la requête PromQL dans les états (générateur de requêtes visuel, aucun PromQL nécessaire) et expose les états sélectionnés sur un point de terminaison /metrics",
+            "it": "Connette ioBroker con Prometheus in entrambe le direzioni: esegue il polling dei risultati delle query PromQL in stati (costruttore di query visive, non è necessario PromQL) ed espone gli stati selezionati su un endpoint /metrics",
+            "es": "Conecta ioBroker con Prometheus en ambas direcciones: sondea los resultados de las consultas PromQL en estados (generador de consultas visual, no se necesita PromQL) y expone los estados seleccionados en un punto final /metrics",
+            "pl": "Łączy ioBroker z Prometheusem w obu kierunkach: odpytuje wyniki zapytania PromQL o stany (wizualny kreator zapytań, nie jest potrzebny PromQL) i udostępnia wybrane stany w punkcie końcowym /metrics",
+            "uk": "З’єднує ioBroker із Prometheus в обох напрямках: опитує результати запиту PromQL у стани (візуальний конструктор запитів, PromQL не потрібен) і показує вибрані стани в кінцевій точці /metrics",
+            "zh-cn": "将 ioBroker 与 Prometheus 双向连接：将 PromQL 查询结果轮询到状态（可视化查询生成器，不需要 PromQL）并在 /metrics 端点上公开选定的状态"
         },
         "authors": [
             "Martin Rauscher <bloop16@hotmail.com>"
