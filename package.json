@@ -1,6 +1,6 @@
 {
   "name": "iobroker.prometheus",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "Polls Prometheus HTTP APIs and stores aggregated query results as states",
   "author": {
     "name": "Martin Rauscher",

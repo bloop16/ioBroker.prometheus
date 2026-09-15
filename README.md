@@ -114,7 +114,7 @@ data does not count as a connection problem). With the exporter enabled, `info.l
     ### **WORK IN PROGRESS**
 -->
 
-### 0.0.1 (2026-09-15)
+### 1.0.0 (2026-09-15)
 
 - (Martin Rauscher) initial release
 - visual query builder: live metric/label/value dropdowns, metric overview, aggregation,

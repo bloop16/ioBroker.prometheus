@@ -1,9 +1,9 @@
 {
     "common": {
         "name": "prometheus",
-        "version": "0.0.1",
+        "version": "1.0.0",
         "news": {
-            "0.0.1": {
+            "1.0.0": {
                 "en": "Initial release: visual query builder with live dropdowns and preview, per-source poll intervals, group-by states, and a pull exporter that exposes selected ioBroker states on /metrics",
                 "de": "Erstveröffentlichung: visueller Query-Builder mit Live-Dropdowns und Vorschau, Abfrageintervall pro Quelle, Group-by-States sowie Pull-Exporter, der ausgewählte ioBroker-States auf /metrics bereitstellt",
                 "ru": "Первоначальный выпуск: визуальный построитель запросов с раскрывающимися списками в реальном времени и предварительным просмотром, интервалами опроса для каждого источника, состояниями группировки и экспортером по запросу, который отображает выбранные состояния ioBroker в /metrics.",
