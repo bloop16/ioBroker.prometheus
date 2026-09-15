@@ -8,6 +8,9 @@
         // the compilation is configured in tsconfig.build.json
         "noEmit": true,
 
+        // TypeScript 6 requires an explicit rootDir (TS5011)
+        "rootDir": ".",
+
         // check JS files, but do not compile them => tsconfig.build.json
         "allowJs": true,
         "checkJs": true,
