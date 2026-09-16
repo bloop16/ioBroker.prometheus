@@ -125,6 +125,8 @@ data does not count as a connection problem). With the exporter enabled, `info.l
 
 Older changes can be found in [CHANGELOG_OLD.md](CHANGELOG_OLD.md).
 
+[Older changelogs can be found there](CHANGELOG_OLD.md)
+
 ## License
 MIT License
 
