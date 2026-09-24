@@ -113,6 +113,9 @@ data does not count as a connection problem). With the exporter enabled, `info.l
     Placeholder for the next version (at the beginning of the line):
     ### **WORK IN PROGRESS**
 -->
+### **WORK IN PROGRESS**
+
+- (Martin Rauscher) adapter requires admin >= 7.8.23 now
 
 ### 1.0.0 (2026-09-15)
 
