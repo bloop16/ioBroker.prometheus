@@ -114,6 +114,10 @@ data does not count as a connection problem). With the exporter enabled, `info.l
     ### **WORK IN PROGRESS**
 -->
 
+
+### **WORK IN PROGRESS**
+- (ioBroker-Bot) Adapter requires admin >= 7.8.23 now.
+
 ### 1.0.0 (2026-09-15)
 
 - (Martin Rauscher) initial release
