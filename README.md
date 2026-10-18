@@ -113,9 +113,7 @@ data does not count as a connection problem). With the exporter enabled, `info.l
     Placeholder for the next version (at the beginning of the line):
     ### **WORK IN PROGRESS**
 -->
-
-
-### **WORK IN PROGRESS**
+### 1.0.1 (2026-10-18)
 - (ioBroker-Bot) Adapter requires admin >= 7.8.23 now.
 
 ### 1.0.0 (2026-09-15)

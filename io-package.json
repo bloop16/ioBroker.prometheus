@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "prometheus",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "news": {
+      "1.0.1": {
+        "en": "Adapter requires admin >= 7.8.23 now.",
+        "de": "Adapter benötigt jetzt admin >= 7.8.23.",
+        "ru": "Теперь адаптеру требуется admin >= 7.8.23.",
+        "pt": "Agora o adaptador exige admin >= 7.8.23.",
+        "nl": "Voor de adapter is nu admin >= 7.8.23 vereist.",
+        "fr": "Adapter nécessite admin >= 7.8.23.",
+        "it": "Adapter richiede admin >= 7.8.23 ora.",
+        "es": "El adaptador ahora necesita admin >= 7.8.23.",
+        "pl": "Adapter wymaga teraz admin >= 7.8.23.",
+        "uk": "Адаптер тепер вимагає admin >= 7.8.23.",
+        "zh-cn": "适配器现在需要 admin >= 7.8.23。"
+      },
       "1.0.0": {
         "en": "Initial release: visual query builder with live dropdowns and preview, per-source poll intervals, group-by states, and a pull exporter that exposes selected ioBroker states on /metrics",
         "de": "Erstveröffentlichung: visueller Query-Builder mit Live-Dropdowns und Vorschau, Abfrageintervall pro Quelle, Group-by-States sowie Pull-Exporter, der ausgewählte ioBroker-States auf /metrics bereitstellt",
