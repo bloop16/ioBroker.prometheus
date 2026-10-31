@@ -1,5 +1,6 @@
 // This file extends the AdapterConfig type from "@iobroker/types"
 
+import type { RawAlertFilter } from "./alertmanager-config";
 import type { RawSourceConfig } from "./source-config";
 
 // Augment the globally declared type ioBroker.AdapterConfig
@@ -22,6 +23,18 @@ declare global {
             port: number;
             /** Bind address of the /metrics endpoint */
             bind: string;
+            /** Whether alerts and silences are read from an Alertmanager */
+            alertmanagerEnabled: boolean;
+            /** Base URL of the Alertmanager, e.g. http://host:9093 */
+            alertmanagerUrl: string;
+            /** Optional basic auth user name of the Alertmanager */
+            alertmanagerUsername: string;
+            /** Optional basic auth password of the Alertmanager (encrypted) */
+            alertmanagerPassword: string;
+            /** Poll interval of the Alertmanager in seconds */
+            alertmanagerPollInterval: number;
+            /** Filter rows restricting the alerts */
+            alertmanagerFilters: RawAlertFilter[];
         }
     }
 }

@@ -107,13 +107,21 @@
     "sources": [],
     "exporterEnabled": false,
     "port": 9126,
-    "bind": "0.0.0.0"
+    "bind": "0.0.0.0",
+    "alertmanagerEnabled": false,
+    "alertmanagerUrl": "",
+    "alertmanagerUsername": "",
+    "alertmanagerPassword": "",
+    "alertmanagerPollInterval": 60,
+    "alertmanagerFilters": []
   },
   "encryptedNative": [
-    "password"
+    "password",
+    "alertmanagerPassword"
   ],
   "protectedNative": [
-    "password"
+    "password",
+    "alertmanagerPassword"
   ],
   "objects": [],
   "instanceObjects": [

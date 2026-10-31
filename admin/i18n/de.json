@@ -1,8 +1,12 @@
 {
     "0.0.0.0 = all interfaces": "0.0.0.0 = alle Interfaces",
     "Aggregation": "Aggregation",
+    "Alert filters (optional)": "Alert-Filter (optional)",
+    "Alertmanager": "Alertmanager",
+    "Alertmanager URL": "Alertmanager-URL",
     "Allowed characters: letters, digits, underscore, colon. Empty = iobroker_state with the state id as label": "Erlaubte Zeichen: Buchstaben, Ziffern, Unterstrich, Doppelpunkt. Leer = iobroker_state mit der State-ID als Label",
     "Average": "Durchschnitt",
+    "Base URL of the Alertmanager, e.g. http://192.168.1.10:9093": "Basis-URL des Alertmanagers, z.B. http://192.168.1.10:9093",
     "Base URL of the Prometheus server, e.g. http://192.168.1.10:9090": "Basis-URL des Prometheus-Servers, z.B. http://192.168.1.10:9090",
     "Bind address": "Bind-Adresse",
     "Configure your Prometheus server once, then add any number of queries. Metrics, labels and values are loaded live from the server - no PromQL knowledge required. Save the configuration after changing the server settings so the live dropdowns use them.": "Konfiguriere einmal deinen Prometheus-Server und lege dann beliebig viele Abfragen an. Metriken, Labels und Werte werden live vom Server geladen - keine PromQL-Kenntnisse erforderlich. Nach Änderungen an den Server-Einstellungen die Konfiguration speichern, damit die Live-Dropdowns sie verwenden.",
@@ -21,6 +25,7 @@
     "HTTP timeout for all Prometheus API requests": "HTTP-Timeout für alle Prometheus-API-Anfragen",
     "How multiple series are combined": "Wie mehrere Serien kombiniert werden",
     "How often this query is executed (seconds)": "Wie oft diese Abfrage ausgeführt wird (Sekunden)",
+    "Label": "Label",
     "Last value (no aggregation)": "Letzter Wert (keine Aggregation)",
     "Live preview": "Live-Vorschau",
     "Loaded live from the configured Prometheus server": "Wird live vom konfigurierten Prometheus-Server geladen",
@@ -30,7 +35,9 @@
     "Minimum": "Minimum",
     "Name": "Name",
     "One state per label value combination is created": "Pro Label-Wert-Kombination wird ein State angelegt",
+    "Only alerts matching all rows are shown, e.g. severity =~ critical|warning": "Nur Alerts, die auf alle Zeilen passen, werden angezeigt, z.B. severity =~ critical|warning",
     "Only series with this label value are included": "Nur Serien mit diesem Label-Wert werden einbezogen",
+    "Operator": "Operator",
     "Optional basic auth password": "Optionales Basic-Auth-Passwort",
     "Optional basic auth user name": "Optionaler Basic-Auth-Benutzername",
     "Password (optional)": "Passwort (optional)",
@@ -39,6 +46,8 @@
     "Prometheus URL": "Prometheus-URL",
     "Prometheus label to filter on": "Prometheus-Label, nach dem gefiltert wird",
     "Prometheus server": "Prometheus-Server",
+    "Read alerts from Alertmanager": "Alerts aus dem Alertmanager lesen",
+    "Reads active alerts and silences from a Prometheus Alertmanager into states below alertmanager. Silenced and inhibited alerts are not counted. Rules and silences stay in Alertmanager; this is read-only.": "Liest aktive Alerts und Silences aus einem Prometheus-Alertmanager in States unterhalb von alertmanager. Stummgeschaltete und unterdrückte Alerts werden nicht gezählt. Regeln und Silences bleiben im Alertmanager; der Zugriff ist rein lesend.",
     "Request timeout (s)": "Request-Timeout (s)",
     "Sources": "Quellen",
     "States are written below metrics.<path>, e.g. servers.nas. Empty = derived from name": "States werden unterhalb von metrics.<Pfad> geschrieben, z.B. servers.nas. Leer = aus dem Namen abgeleitet",
@@ -47,5 +56,7 @@
     "Test connection": "Verbindung testen",
     "This state cannot be exported: Prometheus stores numbers only (numeric and boolean states are supported)": "Dieser State kann nicht exportiert werden: Prometheus speichert nur Zahlen (numerische und boolesche States werden unterstützt)",
     "Username (optional)": "Benutzername (optional)",
-    "Value is exposed on the /metrics endpoint of the adapter (exporter must be enabled in the instance settings)": "Der Wert wird auf dem /metrics-Endpoint des Adapters bereitgestellt (Exporter muss in den Instanz-Einstellungen aktiviert sein)"
+    "Value": "Wert",
+    "Value is exposed on the /metrics endpoint of the adapter (exporter must be enabled in the instance settings)": "Der Wert wird auf dem /metrics-Endpoint des Adapters bereitgestellt (Exporter muss in den Instanz-Einstellungen aktiviert sein)",
+    "When disabled, the alertmanager states are removed": "Beim Deaktivieren werden die alertmanager-States entfernt"
 }

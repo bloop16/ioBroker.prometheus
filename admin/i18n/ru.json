@@ -1,8 +1,12 @@
 {
     "0.0.0.0 = all interfaces": "0.0.0.0 = все интерфейсы",
     "Aggregation": "Агрегация",
+    "Alert filters (optional)": "Фильтры оповещений (опционально)",
+    "Alertmanager": "Alertmanager",
+    "Alertmanager URL": "URL-адрес Alertmanager",
     "Allowed characters: letters, digits, underscore, colon. Empty = iobroker_state with the state id as label": "Разрешенные символы: буквы, цифры, подчеркивание, двоеточие. Пустой = iobroker_state с идентификатором состояния в качестве метки",
     "Average": "Средний",
+    "Base URL of the Alertmanager, e.g. http://192.168.1.10:9093": "Базовый URL-адрес Alertmanager, например. http://192.168.1.10:9093",
     "Base URL of the Prometheus server, e.g. http://192.168.1.10:9090": "Базовый URL-адрес сервера Prometheus, например. http://192.168.1.10:9090",
     "Bind address": "Привязать адрес",
     "Configure your Prometheus server once, then add any number of queries. Metrics, labels and values are loaded live from the server - no PromQL knowledge required. Save the configuration after changing the server settings so the live dropdowns use them.": "Настройте свой сервер Prometheus один раз, а затем добавьте любое количество запросов. Метрики, метки и значения загружаются в реальном времени с сервера — знаний PromQL не требуется. Сохраните конфигурацию после изменения настроек сервера, чтобы они использовались в раскрывающихся списках.",
@@ -21,6 +25,7 @@
     "HTTP timeout for all Prometheus API requests": "Тайм-аут HTTP для всех запросов API Prometheus",
     "How multiple series are combined": "Как объединяются несколько серий",
     "How often this query is executed (seconds)": "Как часто выполняется этот запрос (секунды)",
+    "Label": "Этикетка",
     "Last value (no aggregation)": "Последнее значение (без агрегирования)",
     "Live preview": "Предварительный просмотр в реальном времени",
     "Loaded live from the configured Prometheus server": "Загружается в реальном времени с настроенного сервера Prometheus.",
@@ -30,7 +35,9 @@
     "Minimum": "Минимум",
     "Name": "Имя",
     "One state per label value combination is created": "Создается одно состояние для каждой комбинации значений метки.",
+    "Only alerts matching all rows are shown, e.g. severity =~ critical|warning": "Отображаются только оповещения, соответствующие всем строкам, например. серьезность =~ критическая|предупреждение",
     "Only series with this label value are included": "Включены только серии с этим значением метки.",
+    "Operator": "Оператор",
     "Optional basic auth password": "Необязательный базовый пароль аутентификации",
     "Optional basic auth user name": "Необязательное имя пользователя для базовой аутентификации",
     "Password (optional)": "Пароль (необязательно)",
@@ -39,6 +46,8 @@
     "Prometheus URL": "URL-адрес Прометея",
     "Prometheus label to filter on": "Ярлык Prometheus для фильтрации",
     "Prometheus server": "Прометей сервер",
+    "Read alerts from Alertmanager": "Чтение оповещений от Alertmanager",
+    "Reads active alerts and silences from a Prometheus Alertmanager into states below alertmanager. Silenced and inhibited alerts are not counted. Rules and silences stay in Alertmanager; this is read-only.": "Считывает активные оповещения и молчания из Alertmanager Prometheus в состояния ниже alertmanager. Беззвучные и заблокированные оповещения не учитываются. Правила и молчание остаются в Alertmanager; это только для чтения.",
     "Request timeout (s)": "Тайм-аут запроса (с)",
     "Sources": "Источники",
     "States are written below metrics.<path>, e.g. servers.nas. Empty = derived from name": "Состояния записываются под метриками.<путь>, например. server.nas. Пусто = получено из имени",
@@ -47,5 +56,7 @@
     "Test connection": "Тестовое соединение",
     "This state cannot be exported: Prometheus stores numbers only (numeric and boolean states are supported)": "Это состояние невозможно экспортировать: Prometheus хранит только числа (поддерживаются числовые и логические состояния).",
     "Username (optional)": "Имя пользователя (необязательно)",
-    "Value is exposed on the /metrics endpoint of the adapter (exporter must be enabled in the instance settings)": "Значение отображается в конечной точке адаптера /metrics (экспортер должен быть включен в настройках экземпляра)."
+    "Value": "Ценить",
+    "Value is exposed on the /metrics endpoint of the adapter (exporter must be enabled in the instance settings)": "Значение отображается в конечной точке адаптера /metrics (экспортер должен быть включен в настройках экземпляра).",
+    "When disabled, the alertmanager states are removed": "При отключении состояния alertmanager удаляются."
 }

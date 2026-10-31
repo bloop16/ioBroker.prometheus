@@ -47,5 +47,16 @@
     "Value is exposed on the /metrics endpoint of the adapter (exporter must be enabled in the instance settings)": "Value is exposed on the /metrics endpoint of the adapter (exporter must be enabled in the instance settings)",
     "Custom metric name (optional)": "Custom metric name (optional)",
     "Allowed characters: letters, digits, underscore, colon. Empty = iobroker_state with the state id as label": "Allowed characters: letters, digits, underscore, colon. Empty = iobroker_state with the state id as label",
-    "This state cannot be exported: Prometheus stores numbers only (numeric and boolean states are supported)": "This state cannot be exported: Prometheus stores numbers only (numeric and boolean states are supported)"
+    "This state cannot be exported: Prometheus stores numbers only (numeric and boolean states are supported)": "This state cannot be exported: Prometheus stores numbers only (numeric and boolean states are supported)",
+    "Alert filters (optional)": "Alert filters (optional)",
+    "Alertmanager": "Alertmanager",
+    "Alertmanager URL": "Alertmanager URL",
+    "Base URL of the Alertmanager, e.g. http://192.168.1.10:9093": "Base URL of the Alertmanager, e.g. http://192.168.1.10:9093",
+    "Label": "Label",
+    "Only alerts matching all rows are shown, e.g. severity =~ critical|warning": "Only alerts matching all rows are shown, e.g. severity =~ critical|warning",
+    "Operator": "Operator",
+    "Read alerts from Alertmanager": "Read alerts from Alertmanager",
+    "Reads active alerts and silences from a Prometheus Alertmanager into states below alertmanager. Silenced and inhibited alerts are not counted. Rules and silences stay in Alertmanager; this is read-only.": "Reads active alerts and silences from a Prometheus Alertmanager into states below alertmanager. Silenced and inhibited alerts are not counted. Rules and silences stay in Alertmanager; this is read-only.",
+    "Value": "Value",
+    "When disabled, the alertmanager states are removed": "When disabled, the alertmanager states are removed"
 }
