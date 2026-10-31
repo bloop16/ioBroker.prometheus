@@ -44,7 +44,6 @@
     "Exporter port": "Exporter port",
     "Bind address": "Bind address",
     "0.0.0.0 = all interfaces": "0.0.0.0 = all interfaces",
-    "Export this state to Prometheus": "Export this state to Prometheus",
     "Value is exposed on the /metrics endpoint of the adapter (exporter must be enabled in the instance settings)": "Value is exposed on the /metrics endpoint of the adapter (exporter must be enabled in the instance settings)",
     "Custom metric name (optional)": "Custom metric name (optional)",
     "Allowed characters: letters, digits, underscore, colon. Empty = iobroker_state with the state id as label": "Allowed characters: letters, digits, underscore, colon. Empty = iobroker_state with the state id as label",

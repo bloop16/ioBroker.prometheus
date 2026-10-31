@@ -11,7 +11,6 @@
     "Display name; also used as default datapoint path": "Nombre para mostrar; también se utiliza como ruta de punto de datos predeterminada",
     "Enable /metrics endpoint": "Habilitar punto final /métricas",
     "Enabled": "Activado",
-    "Export this state to Prometheus": "Exportar este estado a Prometheus",
     "Exporter (ioBroker to Prometheus)": "Exportador (ioBroker a Prometheus)",
     "Exporter port": "Puerto exportador",
     "Exposes selected ioBroker states on a /metrics endpoint for scraping by Prometheus. Select the states in the object settings of each datapoint (Prometheus tab) and add a scrape job for this endpoint to your prometheus.yml.": "Expone estados seleccionados de ioBroker en un punto final /metrics para que Prometheus los raspe. Seleccione los estados en la configuración del objeto de cada punto de datos (pestaña Prometheus) y agregue un trabajo de raspado para este punto final a su prometheus.yml.",

@@ -11,7 +11,6 @@
     "Display name; also used as default datapoint path": "显示名称；也用作默认数据点路径",
     "Enable /metrics endpoint": "启用 /metrics 端点",
     "Enabled": "启用",
-    "Export this state to Prometheus": "将此状态导出到 Prometheus",
     "Exporter (ioBroker to Prometheus)": "导出器（ioBroker 到 Prometheus）",
     "Exporter port": "出口国港口",
     "Exposes selected ioBroker states on a /metrics endpoint for scraping by Prometheus. Select the states in the object settings of each datapoint (Prometheus tab) and add a scrape job for this endpoint to your prometheus.yml.": "在 /metrics 端点上公开选定的 ioBroker 状态，以便 Prometheus 进行抓取。选择每个数据点（Prometheus 选项卡）的对象设置中的状态，并将该端点的抓取作业添加到您的 prometheus.yml 中。",

@@ -63,11 +63,11 @@ The adapter can also work in the opposite direction: it exposes selected ioBroke
 them — like a node exporter for your smart home.
 
 1. Enable the exporter in the instance settings (port, default `9126`).
-2. Open the object settings of any numeric or boolean datapoint and enable
-   **Export this state to Prometheus** on the adapter's tab. Optionally set a custom metric
+2. Open the object settings of any numeric or boolean datapoint and tick **Enabled** on the
+   adapter's tab to export it. Optionally set a custom metric
    name (default: `iobroker_state` with the state id and name as labels). Non-numeric states
-   (strings, objects) cannot be exported — Prometheus stores numbers only — and the option is
-   hidden for them. Changes take effect immediately, no adapter restart needed.
+   (strings, objects) cannot be exported — Prometheus stores numbers only — and a notice is
+   shown instead of the settings. Changes take effect immediately, no adapter restart needed.
 3. Add a scrape job to your `prometheus.yml`:
 
 ```yaml
@@ -113,6 +113,9 @@ data does not count as a connection problem). With the exporter enabled, `info.l
     Placeholder for the next version (at the beginning of the line):
     ### **WORK IN PROGRESS**
 -->
+### **WORK IN PROGRESS**
+- (bloop16) Object settings: removed the duplicate export checkbox, the built-in "Enabled" checkbox now controls the export alone
+
 ### 1.0.1 (2026-10-18)
 - (ioBroker-Bot) Adapter requires admin >= 7.8.23 now.
 
