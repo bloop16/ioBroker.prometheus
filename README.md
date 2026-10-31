@@ -123,7 +123,8 @@ that have actually fired get a folder, as rules cannot be matched against the fi
 | State | Description |
 |-------|-------------|
 | `active` | `true` while the alert is firing (not silenced or inhibited) |
-| `count` | Number of firing instances; one rule usually fires once per instance |
+| `silenced` | `true` while at least one instance fires but is silenced or inhibited; it does not count as `active` |
+| `count` | Number of firing instances that are not silenced or inhibited; one rule usually fires once per instance |
 | `severity` | Severity of the firing instances, otherwise that of the rule |
 | `summary` | Summary of the newest firing instance |
 | `startsAt` | Start of the newest firing instance |

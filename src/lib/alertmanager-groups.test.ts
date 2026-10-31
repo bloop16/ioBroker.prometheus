@@ -41,6 +41,7 @@ describe("alertmanager-groups => groupAlerts", () => {
                 key: "AdGuardDown",
                 name: "AdGuardDown",
                 active: false,
+                silenced: false,
                 count: 0,
                 severity: "critical",
                 summary: "",
@@ -71,6 +72,38 @@ describe("alertmanager-groups => groupAlerts", () => {
         const [group] = groupAlerts([alert("SSLCertExpiringSoon", "warning", "2026-10-01T10:00:00Z")], rules);
 
         expect(group.severity).to.equal("warning");
+    });
+
+    it("marks an alert as silenced without counting it as active", () => {
+        const silenced = [alert("Watchdog", "none", "2026-10-01T10:00:00Z", "x")];
+
+        const [group] = groupAlerts([], [{ name: "Watchdog", severity: "none" }], silenced);
+
+        expect(group.silenced).to.equal(true);
+        expect(group.active).to.equal(false);
+        expect(group.count).to.equal(0);
+        expect(group.entries).to.deep.equal([]);
+    });
+
+    it("creates a group for a silenced alert without a rule", () => {
+        const [group] = groupAlerts([], [], [alert("Watchdog", "none", "2026-10-01T10:00:00Z")]);
+
+        expect(group.key).to.equal("Watchdog");
+        expect(group.name).to.equal("Watchdog");
+        expect(group.severity).to.equal("none");
+        expect(group.silenced).to.equal(true);
+    });
+
+    it("can be active and silenced at the same time for different instances", () => {
+        const [group] = groupAlerts(
+            [alert("Down", "critical", "2026-10-01T10:00:00Z", "", "a")],
+            [],
+            [alert("Down", "critical", "2026-10-01T10:00:00Z", "", "b")],
+        );
+
+        expect(group.active).to.equal(true);
+        expect(group.silenced).to.equal(true);
+        expect(group.count).to.equal(1);
     });
 
     it("sanitizes the key but keeps the display name", () => {

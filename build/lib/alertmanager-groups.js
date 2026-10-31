@@ -37,29 +37,38 @@ function groupBy(items, key) {
 function joinSeverities(severities) {
   return [...new Set(severities.filter((severity) => severity !== ""))].sort().join(", ");
 }
-function toGroup(key, alerts, rules) {
-  var _a, _b;
+function toGroup(key, alerts, rules, suppressed) {
+  var _a, _b, _c;
   const { entries, count } = (0, import_alertmanager_summary.summarizeAlerts)(alerts);
   const newest = entries.at(0);
+  const muted = (_a = suppressed.at(0)) == null ? void 0 : _a.labels;
+  const severities = rules.length > 0 ? rules.map((rule) => rule.severity) : suppressed.map((s) => {
+    var _a2;
+    return (_a2 = s.labels.severity) != null ? _a2 : "";
+  });
   return {
     key,
-    name: (newest == null ? void 0 : newest.alertname) || ((_a = rules.at(0)) == null ? void 0 : _a.name) || UNNAMED,
+    name: (newest == null ? void 0 : newest.alertname) || ((_b = rules.at(0)) == null ? void 0 : _b.name) || (muted == null ? void 0 : muted.alertname) || UNNAMED,
     active: count > 0,
+    silenced: suppressed.length > 0,
     count,
-    severity: joinSeverities(newest ? entries.map((entry) => entry.severity) : rules.map((rule) => rule.severity)),
-    summary: (_b = newest == null ? void 0 : newest.summary) != null ? _b : "",
+    severity: joinSeverities(newest ? entries.map((entry) => entry.severity) : severities),
+    summary: (_c = newest == null ? void 0 : newest.summary) != null ? _c : "",
     startsAt: newest ? Date.parse(newest.startsAt) || null : null,
     entries
   };
 }
-function groupAlerts(alerts, rules) {
+function groupAlerts(alerts, rules, suppressed = []) {
   const alertsByKey = groupBy(alerts, (alert) => keyOf(alert.labels.alertname));
   const rulesByKey = groupBy(rules, (rule) => keyOf(rule.name));
-  const keys = [.../* @__PURE__ */ new Set([...alertsByKey.keys(), ...rulesByKey.keys()])].sort();
-  return keys.map((key) => {
-    var _a, _b;
-    return toGroup(key, (_a = alertsByKey.get(key)) != null ? _a : [], (_b = rulesByKey.get(key)) != null ? _b : []);
-  });
+  const suppressedByKey = groupBy(suppressed, (alert) => keyOf(alert.labels.alertname));
+  const keys = [.../* @__PURE__ */ new Set([...alertsByKey.keys(), ...rulesByKey.keys(), ...suppressedByKey.keys()])].sort();
+  return keys.map(
+    (key) => {
+      var _a, _b, _c;
+      return toGroup(key, (_a = alertsByKey.get(key)) != null ? _a : [], (_b = rulesByKey.get(key)) != null ? _b : [], (_c = suppressedByKey.get(key)) != null ? _c : []);
+    }
+  );
 }
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {

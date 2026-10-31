@@ -143,6 +143,22 @@ export class AlertmanagerClient {
         return data.map(toAlert).filter(entry => entry !== undefined);
     }
 
+    /**
+     * Returns the firing alerts that are silenced or inhibited
+     *
+     * @param matchers - Matcher expressions the alerts must fulfil
+     */
+    public async suppressedAlerts(matchers: string[]): Promise<AlertEntry[]> {
+        const data = await this.list("/api/v2/alerts", {
+            active: "false",
+            silenced: "true",
+            inhibited: "true",
+            unprocessed: "false",
+            filter: matchers,
+        });
+        return data.map(toAlert).filter(entry => entry !== undefined);
+    }
+
     /** Returns the active silences; older servers cannot filter them, so this is done here */
     public async activeSilences(): Promise<SilenceEntry[]> {
         const data = await this.list("/api/v2/silences");

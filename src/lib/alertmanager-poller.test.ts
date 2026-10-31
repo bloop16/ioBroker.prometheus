@@ -18,7 +18,7 @@ interface Harness {
     poller: AlertmanagerPoller;
     states: Map<string, unknown>;
     objects: Map<string, ioBroker.SettableObject>;
-    source: { activeAlerts: sinon.SinonStub; activeSilences: sinon.SinonStub };
+    source: { activeAlerts: sinon.SinonStub; suppressedAlerts: sinon.SinonStub; activeSilences: sinon.SinonStub };
     health: sinon.SinonStub;
     host: PollerHost;
     tick: () => Promise<void>;
@@ -64,6 +64,7 @@ function harness(
 
     const source = {
         activeAlerts: sinon.stub().resolves([] as AlertEntry[]),
+        suppressedAlerts: sinon.stub().resolves([] as AlertEntry[]),
         activeSilences: sinon.stub().resolves([] as SilenceEntry[]),
     };
     const health = sinon.stub();
@@ -139,6 +140,32 @@ describe("alertmanager-poller", () => {
         expect(states.get(`${root}.count`)).to.equal(0);
         expect(states.get(`${root}.startsAt`)).to.equal(null);
         expect(states.get(`${root}.severity`)).to.equal("critical");
+    });
+
+    it("shows a silenced alert in its folder but not in the counts", async () => {
+        const { poller, states, source, tick } = harness();
+        source.suppressedAlerts.resolves([alert("a", "none")]);
+
+        await poller.start();
+        await poller.idle();
+
+        expect(source.suppressedAlerts.firstCall.args[0]).to.deep.equal(CONFIG.matchers);
+        const root = "alertmanager.alerts.byName.Disk";
+        expect(states.get(`${root}.silenced`)).to.equal(true);
+        expect(states.get(`${root}.active`)).to.equal(false);
+        expect(states.get("alertmanager.alerts.count")).to.equal(0);
+
+        source.suppressedAlerts.resolves([]);
+        await tick();
+        expect(states.get(`${root}.silenced`)).to.equal(false);
+    });
+
+    it("adds new states to folders of a previous run", async () => {
+        const { poller, objects } = harness([], ["Old"]);
+
+        await poller.start();
+
+        expect(objects.has("alertmanager.alerts.byName.Old.silenced")).to.equal(true);
     });
 
     it("marks alerts left over from a previous run as inactive", async () => {

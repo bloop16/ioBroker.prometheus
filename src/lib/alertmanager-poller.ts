@@ -34,6 +34,8 @@ export type PollerHost = Pick<
 export interface AlertmanagerSource {
     /** Returns the firing alerts matching all matchers */
     activeAlerts(matchers: string[]): Promise<AlertEntry[]>;
+    /** Returns the firing alerts that are silenced or inhibited */
+    suppressedAlerts(matchers: string[]): Promise<AlertEntry[]>;
     /** Returns the active silences */
     activeSilences(): Promise<SilenceEntry[]>;
 }
@@ -65,6 +67,7 @@ const STATES: Record<string, StateSpec> = {
 
 const ALERT_STATES: Record<string, StateSpec> = {
     active: { name: "Alert is firing", type: "boolean", role: "indicator.alarm" },
+    silenced: { name: "Alert is firing but silenced or inhibited", type: "boolean", role: "indicator" },
     count: { name: "Firing instances", type: "number", role: "value" },
     severity: { name: "Severity", type: "string", role: "text" },
     summary: { name: "Summary of the newest instance", type: "string", role: "text" },
@@ -110,6 +113,10 @@ export class AlertmanagerPoller {
         await this.ensureObjects();
         this.knownSeverities = await this.loadKeys(SEVERITY_FOLDER, "state");
         this.knownAlerts = await this.loadKeys(ALERT_FOLDER, "channel");
+        // folders of a previous run may lack states added by an update
+        for (const key of this.knownAlerts) {
+            await this.ensureAlertFolder(key, key);
+        }
         this.interval = this.host.setInterval(() => this.trigger(), this.config.pollIntervalMs) ?? undefined;
         this.trigger();
     }
@@ -141,22 +148,31 @@ export class AlertmanagerPoller {
     /** Runs one poll cycle; never rejects */
     private async poll(): Promise<void> {
         try {
-            const [alerts, silences] = await this.fetch();
+            const { alerts, suppressed, silences } = await this.fetch();
             if (this.stopped) {
                 return;
             }
             // the server answered, so the connection is fine even if writing fails below
             await this.report(true, "");
-            await this.writeSummary(alerts, silences);
+            await this.writeSummary(alerts, suppressed, silences);
             await this.write("lastUpdate", Date.now());
         } catch (error) {
             await this.fail(error);
         }
     }
 
-    private async fetch(): Promise<[AlertEntry[], SilenceEntry[]]> {
+    private async fetch(): Promise<{
+        alerts: AlertEntry[];
+        suppressed: AlertEntry[];
+        silences: SilenceEntry[];
+    }> {
         try {
-            return await Promise.all([this.source.activeAlerts(this.config.matchers), this.source.activeSilences()]);
+            const [alerts, suppressed, silences] = await Promise.all([
+                this.source.activeAlerts(this.config.matchers),
+                this.source.suppressedAlerts(this.config.matchers),
+                this.source.activeSilences(),
+            ]);
+            return { alerts, suppressed, silences };
         } catch (error) {
             throw new RequestError(errorText(error));
         }
@@ -181,7 +197,11 @@ export class AlertmanagerPoller {
         await this.write("error", error);
     }
 
-    private async writeSummary(alerts: AlertEntry[], silences: SilenceEntry[]): Promise<void> {
+    private async writeSummary(
+        alerts: AlertEntry[],
+        suppressed: AlertEntry[],
+        silences: SilenceEntry[],
+    ): Promise<void> {
         const alertSummary = summarizeAlerts(alerts);
         const silenceSummary = summarizeSilences(silences);
 
@@ -190,7 +210,7 @@ export class AlertmanagerPoller {
         await this.write("alerts.json", JSON.stringify(alertSummary.entries));
         await this.write("silences.count", silenceSummary.count);
         await this.write("silences.json", JSON.stringify(silenceSummary.entries));
-        await this.writeGroups(groupAlerts(alerts, await this.fetchRules()));
+        await this.writeGroups(groupAlerts(alerts, await this.fetchRules(), suppressed));
     }
 
     /** Rules only add folders, so a failure must not affect the alerts */
@@ -205,9 +225,13 @@ export class AlertmanagerPoller {
 
     private async writeGroups(groups: AlertGroup[]): Promise<void> {
         for (const group of groups) {
-            await this.ensureAlertFolder(group);
+            if (!this.knownAlerts.has(group.key)) {
+                await this.ensureAlertFolder(group.key, group.name);
+                this.knownAlerts = new Set([...this.knownAlerts, group.key]);
+            }
             await this.writeAlert(group.key, {
                 active: group.active,
+                silenced: group.silenced,
                 count: group.count,
                 severity: group.severity,
                 summary: group.summary,
@@ -218,7 +242,14 @@ export class AlertmanagerPoller {
         const current = new Set(groups.map(group => group.key));
         for (const key of [...this.knownAlerts].filter(known => !current.has(known))) {
             // the severity stays, as it still describes the alert
-            await this.writeAlert(key, { active: false, count: 0, summary: "", startsAt: null, json: "[]" });
+            await this.writeAlert(key, {
+                active: false,
+                silenced: false,
+                count: 0,
+                summary: "",
+                startsAt: null,
+                json: "[]",
+            });
         }
     }
 
@@ -228,16 +259,12 @@ export class AlertmanagerPoller {
         }
     }
 
-    private async ensureAlertFolder(group: AlertGroup): Promise<void> {
-        if (this.knownAlerts.has(group.key)) {
-            return;
-        }
-        const id = `${ALERT_FOLDER}.${group.key}`;
-        await this.host.setObjectNotExistsAsync(id, { type: "channel", common: { name: group.name }, native: {} });
+    private async ensureAlertFolder(key: string, name: string): Promise<void> {
+        const id = `${ALERT_FOLDER}.${key}`;
+        await this.host.setObjectNotExistsAsync(id, { type: "channel", common: { name }, native: {} });
         for (const [state, spec] of Object.entries(ALERT_STATES)) {
             await this.ensureState(`${id}.${state}`, spec);
         }
-        this.knownAlerts = new Set([...this.knownAlerts, group.key]);
     }
 
     private async writeSeverities(bySeverity: Record<string, number>): Promise<void> {

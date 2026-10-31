@@ -81,6 +81,25 @@ describe("alertmanager-client => activeAlerts", () => {
     });
 });
 
+describe("alertmanager-client => suppressedAlerts", () => {
+    it("requests only silenced and inhibited alerts and applies the matchers", async () => {
+        const { client, get } = clientWithResponse([ALERT]);
+
+        const alerts = await client.suppressedAlerts(['team="home"']);
+
+        expect(alerts.map(alert => alert.fingerprint)).to.deep.equal(["abc"]);
+        const [url, options] = get.firstCall.args;
+        expect(url).to.equal("http://am:9093/api/v2/alerts");
+        expect(options.params).to.deep.equal({
+            active: "false",
+            silenced: "true",
+            inhibited: "true",
+            unprocessed: "false",
+            filter: ['team="home"'],
+        });
+    });
+});
+
 describe("alertmanager-client => activeSilences", () => {
     const silence = (id: string, state: string): unknown => ({
         id,

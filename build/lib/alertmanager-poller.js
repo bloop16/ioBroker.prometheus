@@ -49,6 +49,7 @@ const STATES = {
 };
 const ALERT_STATES = {
   active: { name: "Alert is firing", type: "boolean", role: "indicator.alarm" },
+  silenced: { name: "Alert is firing but silenced or inhibited", type: "boolean", role: "indicator" },
   count: { name: "Firing instances", type: "number", role: "value" },
   severity: { name: "Severity", type: "string", role: "text" },
   summary: { name: "Summary of the newest instance", type: "string", role: "text" },
@@ -89,6 +90,9 @@ class AlertmanagerPoller {
     await this.ensureObjects();
     this.knownSeverities = await this.loadKeys(SEVERITY_FOLDER, "state");
     this.knownAlerts = await this.loadKeys(ALERT_FOLDER, "channel");
+    for (const key of this.knownAlerts) {
+      await this.ensureAlertFolder(key, key);
+    }
     this.interval = (_a = this.host.setInterval(() => this.trigger(), this.config.pollIntervalMs)) != null ? _a : void 0;
     this.trigger();
   }
@@ -116,12 +120,12 @@ class AlertmanagerPoller {
   /** Runs one poll cycle; never rejects */
   async poll() {
     try {
-      const [alerts, silences] = await this.fetch();
+      const { alerts, suppressed, silences } = await this.fetch();
       if (this.stopped) {
         return;
       }
       await this.report(true, "");
-      await this.writeSummary(alerts, silences);
+      await this.writeSummary(alerts, suppressed, silences);
       await this.write("lastUpdate", Date.now());
     } catch (error) {
       await this.fail(error);
@@ -129,7 +133,12 @@ class AlertmanagerPoller {
   }
   async fetch() {
     try {
-      return await Promise.all([this.source.activeAlerts(this.config.matchers), this.source.activeSilences()]);
+      const [alerts, suppressed, silences] = await Promise.all([
+        this.source.activeAlerts(this.config.matchers),
+        this.source.suppressedAlerts(this.config.matchers),
+        this.source.activeSilences()
+      ]);
+      return { alerts, suppressed, silences };
     } catch (error) {
       throw new RequestError(errorText(error));
     }
@@ -150,7 +159,7 @@ class AlertmanagerPoller {
     this.onHealth(healthy);
     await this.write("error", error);
   }
-  async writeSummary(alerts, silences) {
+  async writeSummary(alerts, suppressed, silences) {
     const alertSummary = (0, import_alertmanager_summary.summarizeAlerts)(alerts);
     const silenceSummary = (0, import_alertmanager_summary.summarizeSilences)(silences);
     await this.writeSeverities(alertSummary.bySeverity);
@@ -158,7 +167,7 @@ class AlertmanagerPoller {
     await this.write("alerts.json", JSON.stringify(alertSummary.entries));
     await this.write("silences.count", silenceSummary.count);
     await this.write("silences.json", JSON.stringify(silenceSummary.entries));
-    await this.writeGroups((0, import_alertmanager_groups.groupAlerts)(alerts, await this.fetchRules()));
+    await this.writeGroups((0, import_alertmanager_groups.groupAlerts)(alerts, await this.fetchRules(), suppressed));
   }
   /** Rules only add folders, so a failure must not affect the alerts */
   async fetchRules() {
@@ -172,9 +181,13 @@ class AlertmanagerPoller {
   }
   async writeGroups(groups) {
     for (const group of groups) {
-      await this.ensureAlertFolder(group);
+      if (!this.knownAlerts.has(group.key)) {
+        await this.ensureAlertFolder(group.key, group.name);
+        this.knownAlerts = /* @__PURE__ */ new Set([...this.knownAlerts, group.key]);
+      }
       await this.writeAlert(group.key, {
         active: group.active,
+        silenced: group.silenced,
         count: group.count,
         severity: group.severity,
         summary: group.summary,
@@ -184,7 +197,14 @@ class AlertmanagerPoller {
     }
     const current = new Set(groups.map((group) => group.key));
     for (const key of [...this.knownAlerts].filter((known) => !current.has(known))) {
-      await this.writeAlert(key, { active: false, count: 0, summary: "", startsAt: null, json: "[]" });
+      await this.writeAlert(key, {
+        active: false,
+        silenced: false,
+        count: 0,
+        summary: "",
+        startsAt: null,
+        json: "[]"
+      });
     }
   }
   async writeAlert(key, values) {
@@ -192,16 +212,12 @@ class AlertmanagerPoller {
       await this.host.setStateChangedAsync(`${ALERT_FOLDER}.${key}.${state}`, value, true);
     }
   }
-  async ensureAlertFolder(group) {
-    if (this.knownAlerts.has(group.key)) {
-      return;
-    }
-    const id = `${ALERT_FOLDER}.${group.key}`;
-    await this.host.setObjectNotExistsAsync(id, { type: "channel", common: { name: group.name }, native: {} });
+  async ensureAlertFolder(key, name) {
+    const id = `${ALERT_FOLDER}.${key}`;
+    await this.host.setObjectNotExistsAsync(id, { type: "channel", common: { name }, native: {} });
     for (const [state, spec] of Object.entries(ALERT_STATES)) {
       await this.ensureState(`${id}.${state}`, spec);
     }
-    this.knownAlerts = /* @__PURE__ */ new Set([...this.knownAlerts, group.key]);
   }
   async writeSeverities(bySeverity) {
     var _a;

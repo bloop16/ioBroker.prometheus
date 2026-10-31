@@ -35,8 +35,9 @@ function startMockAlertmanager() {
     const server = http.createServer((req, res) => {
         urls.push(req.url);
         const path = req.url.split("?")[0];
+        const suppressedOnly = req.url.includes("active=false");
         const bodies = {
-            "/api/v2/alerts": [MOCK_ALERT],
+            "/api/v2/alerts": suppressedOnly ? [{ ...MOCK_ALERT, labels: { alertname: "Watchdog" } }] : [MOCK_ALERT],
             "/api/v2/silences": MOCK_SILENCES,
             "/api/v2/status": { versionInfo: { version: "0.34.2" }, config: { original: "secret" } },
         };
@@ -162,6 +163,11 @@ tests.integration(path.join(__dirname, ".."), {
                 expect((await harness.states.getStateAsync(`${ns}.alerts.countBySeverity.critical`)).val).to.equal(1);
                 const folder = await harness.objects.getObjectAsync(`${ns}.alerts.byName.DiskFull`);
                 expect(folder.type).to.equal("channel");
+                const watchdog = `${ns}.alerts.byName.Watchdog`;
+                expect((await waitForState(harness, `${watchdog}.silenced`)).val).to.equal(
+                    true,
+                );
+                expect((await harness.states.getStateAsync(`${watchdog}.active`)).val).to.equal(false);
                 expect(await harness.objects.getObjectAsync(`${ns}.info.connection`)).to.equal(null);
                 expect(JSON.parse((await harness.states.getStateAsync(`${ns}.alerts.json`)).val)[0].alertname).to.equal(
                     "DiskFull",

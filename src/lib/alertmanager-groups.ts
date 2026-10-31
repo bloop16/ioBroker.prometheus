@@ -21,7 +21,9 @@ export interface AlertGroup {
     name: string;
     /** Whether the alert is firing */
     active: boolean;
-    /** Number of firing instances */
+    /** Whether at least one instance fires but is silenced or inhibited */
+    silenced: boolean;
+    /** Number of firing instances that are not silenced or inhibited */
     count: number;
     /** Severities of the firing instances, or of the rules when inactive */
     severity: string;
@@ -48,15 +50,19 @@ function joinSeverities(severities: string[]): string {
     return [...new Set(severities.filter(severity => severity !== ""))].sort().join(", ");
 }
 
-function toGroup(key: string, alerts: AlertEntry[], rules: AlertRule[]): AlertGroup {
+function toGroup(key: string, alerts: AlertEntry[], rules: AlertRule[], suppressed: AlertEntry[]): AlertGroup {
     const { entries, count } = summarizeAlerts(alerts);
     const newest = entries.at(0);
+    const muted = suppressed.at(0)?.labels;
+    const severities =
+        rules.length > 0 ? rules.map(rule => rule.severity) : suppressed.map(s => s.labels.severity ?? "");
     return {
         key,
-        name: newest?.alertname || rules.at(0)?.name || UNNAMED,
+        name: newest?.alertname || rules.at(0)?.name || muted?.alertname || UNNAMED,
         active: count > 0,
+        silenced: suppressed.length > 0,
         count,
-        severity: joinSeverities(newest ? entries.map(entry => entry.severity) : rules.map(rule => rule.severity)),
+        severity: joinSeverities(newest ? entries.map(entry => entry.severity) : severities),
         summary: newest?.summary ?? "",
         startsAt: newest ? Date.parse(newest.startsAt) || null : null,
         entries,
@@ -68,11 +74,15 @@ function toGroup(key: string, alerts: AlertEntry[], rules: AlertRule[]): AlertGr
  *
  * @param alerts - The firing alerts
  * @param rules - The alert rules known to Prometheus; may be empty
+ * @param suppressed - The firing alerts that are silenced or inhibited
  * @returns The groups sorted by key
  */
-export function groupAlerts(alerts: AlertEntry[], rules: AlertRule[]): AlertGroup[] {
+export function groupAlerts(alerts: AlertEntry[], rules: AlertRule[], suppressed: AlertEntry[] = []): AlertGroup[] {
     const alertsByKey = groupBy(alerts, alert => keyOf(alert.labels.alertname));
     const rulesByKey = groupBy(rules, rule => keyOf(rule.name));
-    const keys = [...new Set([...alertsByKey.keys(), ...rulesByKey.keys()])].sort();
-    return keys.map(key => toGroup(key, alertsByKey.get(key) ?? [], rulesByKey.get(key) ?? []));
+    const suppressedByKey = groupBy(suppressed, alert => keyOf(alert.labels.alertname));
+    const keys = [...new Set([...alertsByKey.keys(), ...rulesByKey.keys(), ...suppressedByKey.keys()])].sort();
+    return keys.map(key =>
+        toGroup(key, alertsByKey.get(key) ?? [], rulesByKey.get(key) ?? [], suppressedByKey.get(key) ?? []),
+    );
 }
