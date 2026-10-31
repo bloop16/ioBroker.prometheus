@@ -1,7 +1,6 @@
 {
     "0.0.0.0 = all interfaces": "0.0.0.0 = усі інтерфейси",
     "Aggregation": "Агрегація",
-    "Alert filters (optional)": "Фільтри сповіщень (необов'язково)",
     "Alertmanager": "Alertmanager",
     "Alertmanager URL": "URL-адреса Alertmanager",
     "Allowed characters: letters, digits, underscore, colon. Empty = iobroker_state with the state id as label": "Дозволені символи: літери, цифри, підкреслення, двокрапка. Empty = iobroker_state з ідентифікатором стану як мітка",
@@ -25,7 +24,6 @@
     "HTTP timeout for all Prometheus API requests": "Час очікування HTTP для всіх запитів API Prometheus",
     "How multiple series are combined": "Як поєднуються кілька серій",
     "How often this query is executed (seconds)": "Як часто цей запит виконується (у секундах)",
-    "Label": "Мітка",
     "Last value (no aggregation)": "Останнє значення (без агрегації)",
     "Live preview": "Попередній перегляд",
     "Loaded live from the configured Prometheus server": "Завантажується в реальному часі з налаштованого сервера Prometheus",
@@ -35,9 +33,7 @@
     "Minimum": "Мінімум",
     "Name": "Ім'я",
     "One state per label value combination is created": "Для кожної комбінації значень мітки створюється один стан",
-    "Only alerts matching all rows are shown, e.g. severity =~ critical|warning": "Відображаються лише сповіщення, які відповідають усім рядкам, напр. серйозність =~ критичне|попередження",
     "Only series with this label value are included": "Включено лише серії з цим значенням мітки",
-    "Operator": "Оператор",
     "Optional basic auth password": "Додатковий базовий пароль авторизації",
     "Optional basic auth user name": "Необов’язкове базове ім’я користувача авторизації",
     "Password (optional)": "Пароль (необов'язково)",
@@ -56,7 +52,6 @@
     "Test connection": "Тестове підключення",
     "This state cannot be exported: Prometheus stores numbers only (numeric and boolean states are supported)": "Цей стан не можна експортувати: Prometheus зберігає лише числа (підтримуються числові та логічні стани)",
     "Username (optional)": "Ім'я користувача (необов'язково)",
-    "Value": "Значення",
     "Value is exposed on the /metrics endpoint of the adapter (exporter must be enabled in the instance settings)": "Значення відображається в кінцевій точці /metrics адаптера (експортер має бути ввімкнено в налаштуваннях екземпляра)",
     "When disabled, the alertmanager states are removed": "Якщо вимкнено, стани AlertManager видаляються"
 }

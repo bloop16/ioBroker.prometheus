@@ -1,7 +1,6 @@
 {
     "0.0.0.0 = all interfaces": "0.0.0.0 = все интерфейсы",
     "Aggregation": "Агрегация",
-    "Alert filters (optional)": "Фильтры оповещений (опционально)",
     "Alertmanager": "Alertmanager",
     "Alertmanager URL": "URL-адрес Alertmanager",
     "Allowed characters: letters, digits, underscore, colon. Empty = iobroker_state with the state id as label": "Разрешенные символы: буквы, цифры, подчеркивание, двоеточие. Пустой = iobroker_state с идентификатором состояния в качестве метки",
@@ -25,7 +24,6 @@
     "HTTP timeout for all Prometheus API requests": "Тайм-аут HTTP для всех запросов API Prometheus",
     "How multiple series are combined": "Как объединяются несколько серий",
     "How often this query is executed (seconds)": "Как часто выполняется этот запрос (секунды)",
-    "Label": "Этикетка",
     "Last value (no aggregation)": "Последнее значение (без агрегирования)",
     "Live preview": "Предварительный просмотр в реальном времени",
     "Loaded live from the configured Prometheus server": "Загружается в реальном времени с настроенного сервера Prometheus.",
@@ -35,9 +33,7 @@
     "Minimum": "Минимум",
     "Name": "Имя",
     "One state per label value combination is created": "Создается одно состояние для каждой комбинации значений метки.",
-    "Only alerts matching all rows are shown, e.g. severity =~ critical|warning": "Отображаются только оповещения, соответствующие всем строкам, например. серьезность =~ критическая|предупреждение",
     "Only series with this label value are included": "Включены только серии с этим значением метки.",
-    "Operator": "Оператор",
     "Optional basic auth password": "Необязательный базовый пароль аутентификации",
     "Optional basic auth user name": "Необязательное имя пользователя для базовой аутентификации",
     "Password (optional)": "Пароль (необязательно)",
@@ -56,7 +52,6 @@
     "Test connection": "Тестовое соединение",
     "This state cannot be exported: Prometheus stores numbers only (numeric and boolean states are supported)": "Это состояние невозможно экспортировать: Prometheus хранит только числа (поддерживаются числовые и логические состояния).",
     "Username (optional)": "Имя пользователя (необязательно)",
-    "Value": "Ценить",
     "Value is exposed on the /metrics endpoint of the adapter (exporter must be enabled in the instance settings)": "Значение отображается в конечной точке адаптера /metrics (экспортер должен быть включен в настройках экземпляра).",
     "When disabled, the alertmanager states are removed": "При отключении состояния alertmanager удаляются."
 }

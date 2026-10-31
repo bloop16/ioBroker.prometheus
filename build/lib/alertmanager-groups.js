@@ -21,12 +21,19 @@ __export(alertmanager_groups_exports, {
   groupAlerts: () => groupAlerts
 });
 module.exports = __toCommonJS(alertmanager_groups_exports);
+var import_node_crypto = require("node:crypto");
 var import_alertmanager_summary = require("./alertmanager-summary");
 var import_source_config = require("./source-config");
 const UNNAMED = "unnamed";
 const RESERVED_KEYS = ["count", "json"];
 function keyOf(name) {
-  const key = name ? (0, import_source_config.sanitizeIdSegment)(name) : UNNAMED;
+  if (!name) {
+    return UNNAMED;
+  }
+  const key = (0, import_source_config.sanitizeIdSegment)(name);
+  if (key !== name) {
+    return `${key}_${(0, import_node_crypto.createHash)("sha256").update(name).digest("hex").slice(0, 6)}`;
+  }
   return RESERVED_KEYS.includes(key) ? `${key}_alert` : key;
 }
 function groupBy(items, key) {

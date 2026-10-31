@@ -31,7 +31,12 @@ var import_prometheus_client = require("./prometheus-client");
 var import_source_config = require("./source-config");
 const ALERTMANAGER_CHANNEL = "alertmanager";
 const ALERT_FOLDER = `${ALERTMANAGER_CHANNEL}.alerts`;
-const LEGACY_OBJECTS = [`${ALERTMANAGER_CHANNEL}.info`, `${ALERT_FOLDER}.byName`, `${ALERT_FOLDER}.countBySeverity`];
+const LEGACY_OBJECTS = [
+  { id: `${ALERTMANAGER_CHANNEL}.info`, type: "channel" },
+  // folders, as an alert with one of these names would be a channel
+  { id: `${ALERT_FOLDER}.byName`, type: "folder" },
+  { id: `${ALERT_FOLDER}.countBySeverity`, type: "folder" }
+];
 const CONTAINERS = [
   { id: ALERTMANAGER_CHANNEL, type: "channel", name: "Alertmanager" },
   { id: ALERT_FOLDER, type: "folder", name: "Alerts" },
@@ -130,8 +135,8 @@ class AlertmanagerPoller {
   async fetch() {
     try {
       const [alerts, suppressed, silences] = await Promise.all([
-        this.source.activeAlerts(this.config.matchers),
-        this.source.suppressedAlerts(this.config.matchers),
+        this.source.activeAlerts(),
+        this.source.suppressedAlerts(),
         this.source.activeSilences()
       ]);
       return { alerts, suppressed, silences };
@@ -233,8 +238,9 @@ class AlertmanagerPoller {
     });
   }
   async removeLegacyObjects() {
-    for (const id of LEGACY_OBJECTS) {
-      if (await this.host.getObjectAsync(id)) {
+    var _a;
+    for (const { id, type } of LEGACY_OBJECTS) {
+      if (((_a = await this.host.getObjectAsync(id)) == null ? void 0 : _a.type) === type) {
         await this.host.delObjectAsync(id, { recursive: true });
       }
     }
@@ -246,15 +252,17 @@ class AlertmanagerPoller {
   }
 }
 async function startAlertmanagerPoller(host, settings, timeoutMs, onHealth) {
-  const { config, errors } = (0, import_alertmanager_config.normalizeAlertmanagerConfig)({
+  const config = (0, import_alertmanager_config.normalizeAlertmanagerConfig)({
     url: settings.alertmanagerUrl,
-    pollInterval: settings.alertmanagerPollInterval,
-    filters: settings.alertmanagerFilters
+    pollInterval: settings.alertmanagerPollInterval
   });
-  for (const error of errors) {
-    host.log.warn(`Alertmanager: ${error}`);
-  }
   if (!config) {
+    const message = "Invalid Alertmanager URL (expected e.g. http://host:9093)";
+    host.log.warn(message);
+    onHealth(false);
+    if (await host.getObjectAsync(`${ALERTMANAGER_CHANNEL}.error`)) {
+      await host.setStateChangedAsync(`${ALERTMANAGER_CHANNEL}.error`, message, true);
+    }
     return void 0;
   }
   const client = new import_alertmanager_client.AlertmanagerClient({
@@ -264,7 +272,7 @@ async function startAlertmanagerPoller(host, settings, timeoutMs, onHealth) {
     password: settings.alertmanagerPassword || void 0
   });
   const prometheusUrl = (0, import_source_config.validateUrl)(settings.url);
-  const rules = prometheusUrl && config.matchers.length === 0 ? new import_prometheus_client.PrometheusClient({
+  const rules = prometheusUrl ? new import_prometheus_client.PrometheusClient({
     baseUrl: prometheusUrl,
     timeoutMs,
     username: settings.username || void 0,

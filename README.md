@@ -98,9 +98,6 @@ alert rules and silences stay in your Prometheus and Alertmanager configuration.
 2. Enter the base URL (e.g. `http://192.168.1.10:9093`; Alertmanager's default port is `9093`,
    not the `9090` of Prometheus) and use **Test connection**. Username and password are separate
    from the Prometheus credentials, because Alertmanager is a server of its own.
-3. Optionally add alert filters. Every row is a label matcher, and alerts must match all rows,
-   e.g. `severity =~ critical|warning`. Severities have no built-in order, so there is no
-   "minimum severity" setting; list the wanted values instead.
 
 The adapter creates these read-only states below `alertmanager`:
 
@@ -117,8 +114,7 @@ The adapter creates these read-only states below `alertmanager`:
 Every alert gets its own folder below `alerts`, named after its `alertname` (alerts called `count`
 or `json` get the suffix `_alert`). If the
 Prometheus server is configured too, its alert rules are read automatically, so all alerts exist
-before they ever fire and can be bound to a dashboard right away. With alert filters only alerts
-that have actually fired get a folder, as rules cannot be matched against the filters.
+before they ever fire and can be bound to a dashboard right away.
 
 | State | Description |
 |-------|-------------|

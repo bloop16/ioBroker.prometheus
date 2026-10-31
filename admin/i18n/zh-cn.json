@@ -1,7 +1,6 @@
 {
     "0.0.0.0 = all interfaces": "0.0.0.0 = 所有接口",
     "Aggregation": "聚合",
-    "Alert filters (optional)": "警报过滤器（可选）",
     "Alertmanager": "Alertmanager",
     "Alertmanager URL": "Alertmanager URL",
     "Allowed characters: letters, digits, underscore, colon. Empty = iobroker_state with the state id as label": "允许的字符：字母、数字、下划线、冒号。 Empty = iobroker_state，以状态 id 作为标签",
@@ -25,7 +24,6 @@
     "HTTP timeout for all Prometheus API requests": "所有 Prometheus API 请求的 HTTP 超时",
     "How multiple series are combined": "多个系列如何组合",
     "How often this query is executed (seconds)": "该查询执行的频率（秒）",
-    "Label": "标签",
     "Last value (no aggregation)": "最后一个值（无聚合）",
     "Live preview": "实时预览",
     "Loaded live from the configured Prometheus server": "从配置的 Prometheus 服务器实时加载",
@@ -35,9 +33,7 @@
     "Minimum": "最低限度",
     "Name": "姓名",
     "One state per label value combination is created": "每个标签值组合创建一个状态",
-    "Only alerts matching all rows are shown, e.g. severity =~ critical|warning": "仅显示与所有行匹配的警报，例如严重性 =~ 严重|警告",
     "Only series with this label value are included": "仅包含具有此标签值的系列",
-    "Operator": "操作员",
     "Optional basic auth password": "可选的基本身份验证密码",
     "Optional basic auth user name": "可选的基本身份验证用户名",
     "Password (optional)": "密码（可选）",
@@ -56,7 +52,6 @@
     "Test connection": "测试连接",
     "This state cannot be exported: Prometheus stores numbers only (numeric and boolean states are supported)": "该状态无法导出：Prometheus 仅存储数字（支持数字和布尔状态）",
     "Username (optional)": "用户名（可选）",
-    "Value": "价值",
     "Value is exposed on the /metrics endpoint of the adapter (exporter must be enabled in the instance settings)": "值在适配器的 /metrics 端点上公开（必须在实例设置中启用导出器）",
     "When disabled, the alertmanager states are removed": "禁用后，Alertmanager状态将被删除"
 }

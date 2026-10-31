@@ -1,7 +1,6 @@
 {
     "0.0.0.0 = all interfaces": "0.0.0.0 = toutes les interfaces",
     "Aggregation": "Agrégation",
-    "Alert filters (optional)": "Filtres d'alerte (facultatif)",
     "Alertmanager": "Alertmanager",
     "Alertmanager URL": "URL du Alertmanager",
     "Allowed characters: letters, digits, underscore, colon. Empty = iobroker_state with the state id as label": "Caractères autorisés : lettres, chiffres, trait de soulignement, deux-points. Vide = iobroker_state avec l'identifiant de l'état comme étiquette",
@@ -25,7 +24,6 @@
     "HTTP timeout for all Prometheus API requests": "Délai d'expiration HTTP pour toutes les requêtes API Prometheus",
     "How multiple series are combined": "Comment plusieurs séries sont combinées",
     "How often this query is executed (seconds)": "À quelle fréquence cette requête est exécutée (secondes)",
-    "Label": "Étiquette",
     "Last value (no aggregation)": "Dernière valeur (pas d'agrégation)",
     "Live preview": "Aperçu en direct",
     "Loaded live from the configured Prometheus server": "Chargé en direct depuis le serveur Prometheus configuré",
@@ -35,9 +33,7 @@
     "Minimum": "Minimum",
     "Name": "Nom",
     "One state per label value combination is created": "Un état par combinaison de valeurs d'étiquette est créé",
-    "Only alerts matching all rows are shown, e.g. severity =~ critical|warning": "Seules les alertes correspondant à toutes les lignes sont affichées, par ex. gravité =~ critique|avertissement",
     "Only series with this label value are included": "Seules les séries avec cette valeur d'étiquette sont incluses",
-    "Operator": "Opérateur",
     "Optional basic auth password": "Mot de passe d'authentification de base facultatif",
     "Optional basic auth user name": "Nom d'utilisateur d'authentification de base facultatif",
     "Password (optional)": "Mot de passe (facultatif)",
@@ -56,7 +52,6 @@
     "Test connection": "Tester la connexion",
     "This state cannot be exported: Prometheus stores numbers only (numeric and boolean states are supported)": "Cet état ne peut pas être exporté : Prometheus stocke uniquement les nombres (les états numériques et booléens sont pris en charge)",
     "Username (optional)": "Nom d'utilisateur (facultatif)",
-    "Value": "Valeur",
     "Value is exposed on the /metrics endpoint of the adapter (exporter must be enabled in the instance settings)": "La valeur est exposée sur le point de terminaison /metrics de l'adaptateur (l'exportateur doit être activé dans les paramètres de l'instance)",
     "When disabled, the alertmanager states are removed": "Lorsqu'ils sont désactivés, les états d'alertmanager sont supprimés"
 }

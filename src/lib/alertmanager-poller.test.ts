@@ -1,9 +1,9 @@
 import { expect } from "chai";
 import sinon from "sinon";
 import type { AlertEntry, SilenceEntry } from "./alertmanager-client";
-import { AlertmanagerPoller, type PollerHost } from "./alertmanager-poller";
+import { AlertmanagerPoller, startAlertmanagerPoller, type PollerHost } from "./alertmanager-poller";
 
-const CONFIG = { url: "http://am:9093", pollIntervalMs: 60_000, matchers: ['severity="critical"'] };
+const CONFIG = { url: "http://am:9093", pollIntervalMs: 60_000 };
 
 function alert(fingerprint: string, severity: string): AlertEntry {
     return {
@@ -29,10 +29,15 @@ function harness(
     existingAlerts: string[] = [],
     rules?: { alertRules: sinon.SinonStub },
     legacyObjects: string[] = [],
+    legacyTypes: Record<string, string> = {},
 ): Harness {
     const states = new Map<string, unknown>();
     const objects = new Map<string, ioBroker.SettableObject>();
-    const legacy = new Map(legacyObjects.map(id => [id, { type: "channel" }]));
+    const types: Array<[string, string]> = [
+        ...legacyObjects.map((id): [string, string] => [id, id.endsWith("info") ? "channel" : "folder"]),
+        ...Object.entries(legacyTypes),
+    ];
+    const legacy = new Map(types.map(([id, type]) => [id, { type }]));
     const deleted: string[] = [];
     let intervalCallback: () => void = () => undefined;
 
@@ -90,7 +95,6 @@ describe("alertmanager-poller", () => {
         await poller.start();
         await poller.idle();
 
-        expect(source.activeAlerts.firstCall.args[0]).to.deep.equal(CONFIG.matchers);
         expect(objects.get("alertmanager")?.type).to.equal("channel");
         expect(objects.get("alertmanager.alerts.json")?.common?.role).to.equal("json");
         expect(states.get("alertmanager.alerts.count")).to.equal(2);
@@ -141,7 +145,6 @@ describe("alertmanager-poller", () => {
         await poller.start();
         await poller.idle();
 
-        expect(source.suppressedAlerts.firstCall.args[0]).to.deep.equal(CONFIG.matchers);
         const root = "alertmanager.alerts.Disk";
         expect(states.get(`${root}.silenced`)).to.equal(true);
         expect(states.get(`${root}.active`)).to.equal(false);
@@ -200,6 +203,26 @@ describe("alertmanager-poller", () => {
         await poller.start();
 
         expect(deleted).to.deep.equal(old);
+    });
+
+    it("keeps an alert that happens to be called like an old folder", async () => {
+        const { poller, deleted } = harness([], undefined, [], { "alertmanager.alerts.byName": "channel" });
+
+        await poller.start();
+
+        expect(deleted).to.deep.equal([]);
+    });
+
+    it("reports an unusable url instead of leaving old values unexplained", async () => {
+        const { host, states, objects } = harness();
+        objects.set("alertmanager.error", { type: "state", common: {}, native: {} } as ioBroker.SettableObject);
+        const health = sinon.stub();
+        const settings = { alertmanagerUrl: "ftp://am", url: "" } as ioBroker.AdapterConfig;
+
+        expect(await startAlertmanagerPoller(host, settings, 1000, health)).to.equal(undefined);
+
+        expect(health.lastCall.args).to.deep.equal([false]);
+        expect(states.get("alertmanager.error")).to.contain("Invalid");
     });
 
     it("keeps the last counts when Alertmanager is unreachable", async () => {

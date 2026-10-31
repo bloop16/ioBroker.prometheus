@@ -1,7 +1,6 @@
 {
     "0.0.0.0 = all interfaces": "0.0.0.0 = alle interfaces",
     "Aggregation": "Aggregatie",
-    "Alert filters (optional)": "Waarschuwingsfilters (optioneel)",
     "Alertmanager": "Alertmanager",
     "Alertmanager URL": "Alertmanager-URL",
     "Allowed characters: letters, digits, underscore, colon. Empty = iobroker_state with the state id as label": "Toegestane tekens: letters, cijfers, onderstrepingsteken, dubbele punt. Leeg = iobroker_state met de status-ID als label",
@@ -25,7 +24,6 @@
     "HTTP timeout for all Prometheus API requests": "HTTP-time-out voor alle Prometheus API-verzoeken",
     "How multiple series are combined": "Hoe meerdere series worden gecombineerd",
     "How often this query is executed (seconds)": "Hoe vaak deze query wordt uitgevoerd (seconden)",
-    "Label": "Label",
     "Last value (no aggregation)": "Laatste waarde (geen aggregatie)",
     "Live preview": "Live-voorbeeld",
     "Loaded live from the configured Prometheus server": "Live geladen vanaf de geconfigureerde Prometheus-server",
@@ -35,9 +33,7 @@
     "Minimum": "Minimum",
     "Name": "Naam",
     "One state per label value combination is created": "Er wordt één status per labelwaardecombinatie gemaakt",
-    "Only alerts matching all rows are shown, e.g. severity =~ critical|warning": "Alleen waarschuwingen die overeenkomen met alle rijen worden weergegeven, b.v. ernst =~ kritiek|waarschuwing",
     "Only series with this label value are included": "Alleen series met deze labelwaarde zijn inbegrepen",
-    "Operator": "Exploitant",
     "Optional basic auth password": "Optioneel basisverificatiewachtwoord",
     "Optional basic auth user name": "Optionele gebruikersnaam voor basisauthenticatie",
     "Password (optional)": "Wachtwoord (optioneel)",
@@ -56,7 +52,6 @@
     "Test connection": "Verbinding testen",
     "This state cannot be exported: Prometheus stores numbers only (numeric and boolean states are supported)": "Deze status kan niet worden geëxporteerd: Prometheus slaat alleen getallen op (numerieke en Booleaanse staten worden ondersteund)",
     "Username (optional)": "Gebruikersnaam (optioneel)",
-    "Value": "Waarde",
     "Value is exposed on the /metrics endpoint of the adapter (exporter must be enabled in the instance settings)": "Waarde wordt weergegeven op het /metrics-eindpunt van de adapter (de exporter moet zijn ingeschakeld in de exemplaarinstellingen)",
     "When disabled, the alertmanager states are removed": "Indien uitgeschakeld, worden de alertmanager-statussen verwijderd"
 }

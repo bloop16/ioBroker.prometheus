@@ -1,4 +1,3 @@
-import axios from "axios";
 import { expect } from "chai";
 import sinon from "sinon";
 import { AlertmanagerClient, testAlertmanager } from "./alertmanager-client";
@@ -21,7 +20,7 @@ describe("alertmanager-client => activeAlerts", () => {
     it("requests only firing alerts and parses them", async () => {
         const { client, get } = clientWithResponse([ALERT]);
 
-        const alerts = await client.activeAlerts([]);
+        const alerts = await client.activeAlerts();
 
         expect(alerts).to.deep.equal([
             {
@@ -38,30 +37,19 @@ describe("alertmanager-client => activeAlerts", () => {
             silenced: "false",
             inhibited: "false",
             unprocessed: "false",
-            filter: [],
         });
-    });
-
-    it("serializes matchers as repeated filter parameters", async () => {
-        const { client, get } = clientWithResponse([]);
-
-        await client.activeAlerts(['severity="critical"', 'team="home"']);
-
-        const uri = decodeURIComponent(axios.getUri({ url: "http://am", ...get.firstCall.args[1] }));
-        expect(uri).to.contain('filter=severity="critical"&filter=team="home"');
-        expect(uri).to.not.contain("filter[]");
     });
 
     it("drops malformed entries", async () => {
         const { client } = clientWithResponse([ALERT, null, { fingerprint: "x" }, "junk"]);
-        expect(await client.activeAlerts([])).to.have.length(1);
+        expect(await client.activeAlerts()).to.have.length(1);
     });
 
     it("rejects a response that is not an array", async () => {
         const { client } = clientWithResponse({ status: "success", data: [] });
 
         let error: Error | undefined;
-        await client.activeAlerts([]).catch((e: Error) => (error = e));
+        await client.activeAlerts().catch((e: Error) => (error = e));
         expect(error?.message).to.contain("expected an array");
     });
 
@@ -72,20 +60,20 @@ describe("alertmanager-client => activeAlerts", () => {
             get,
         );
 
-        await client.activeAlerts([]);
+        await client.activeAlerts();
 
         expect(get.firstCall.args[1].auth).to.deep.equal({ username: "u", password: "p" });
         const { client: anonymous, get: anonymousGet } = clientWithResponse([]);
-        await anonymous.activeAlerts([]);
+        await anonymous.activeAlerts();
         expect(anonymousGet.firstCall.args[1].auth).to.equal(undefined);
     });
 });
 
 describe("alertmanager-client => suppressedAlerts", () => {
-    it("requests only silenced and inhibited alerts and applies the matchers", async () => {
+    it("requests only silenced and inhibited alerts", async () => {
         const { client, get } = clientWithResponse([ALERT]);
 
-        const alerts = await client.suppressedAlerts(['team="home"']);
+        const alerts = await client.suppressedAlerts();
 
         expect(alerts.map(alert => alert.fingerprint)).to.deep.equal(["abc"]);
         const [url, options] = get.firstCall.args;
@@ -95,7 +83,6 @@ describe("alertmanager-client => suppressedAlerts", () => {
             silenced: "true",
             inhibited: "true",
             unprocessed: "false",
-            filter: ['team="home"'],
         });
     });
 });

@@ -1,7 +1,6 @@
 {
     "0.0.0.0 = all interfaces": "0.0.0.0 = todas as interfaces",
     "Aggregation": "Agregação",
-    "Alert filters (optional)": "Filtros de alerta (opcional)",
     "Alertmanager": "Alertmanager",
     "Alertmanager URL": "URL do Alertmanager",
     "Allowed characters: letters, digits, underscore, colon. Empty = iobroker_state with the state id as label": "Caracteres permitidos: letras, dígitos, sublinhado, dois pontos. Vazio = iobroker_state com o ID do estado como rótulo",
@@ -25,7 +24,6 @@
     "HTTP timeout for all Prometheus API requests": "Tempo limite HTTP para todas as solicitações da API Prometheus",
     "How multiple series are combined": "Como várias séries são combinadas",
     "How often this query is executed (seconds)": "Com que frequência esta consulta é executada (segundos)",
-    "Label": "Rótulo",
     "Last value (no aggregation)": "Último valor (sem agregação)",
     "Live preview": "Visualização ao vivo",
     "Loaded live from the configured Prometheus server": "Carregado ao vivo do servidor Prometheus configurado",
@@ -35,9 +33,7 @@
     "Minimum": "Mínimo",
     "Name": "Nome",
     "One state per label value combination is created": "Um estado por combinação de valores de rótulo é criado",
-    "Only alerts matching all rows are shown, e.g. severity =~ critical|warning": "Apenas os alertas que correspondem a todas as linhas são mostrados, por exemplo. gravidade =~ crítico | aviso",
     "Only series with this label value are included": "Somente séries com esse valor de rótulo estão incluídas",
-    "Operator": "Operador",
     "Optional basic auth password": "Senha de autenticação básica opcional",
     "Optional basic auth user name": "Nome de usuário de autenticação básica opcional",
     "Password (optional)": "Senha (opcional)",
@@ -56,7 +52,6 @@
     "Test connection": "Conexão de teste",
     "This state cannot be exported: Prometheus stores numbers only (numeric and boolean states are supported)": "Este estado não pode ser exportado: o Prometheus armazena apenas números (estados numéricos e booleanos são suportados)",
     "Username (optional)": "Nome de usuário (opcional)",
-    "Value": "Valor",
     "Value is exposed on the /metrics endpoint of the adapter (exporter must be enabled in the instance settings)": "O valor é exposto no endpoint /metrics do adaptador (o exportador deve estar habilitado nas configurações da instância)",
     "When disabled, the alertmanager states are removed": "Quando desabilitado, os estados do alertmanager são removidos"
 }

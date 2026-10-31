@@ -88,34 +88,24 @@ class AlertmanagerClient {
     this.options = options;
     this.httpGet = httpGet != null ? httpGet : ((url, requestOptions) => import_axios.default.get(url, requestOptions));
   }
-  /**
-   * Returns the firing alerts that are neither silenced nor inhibited
-   *
-   * @param matchers - Matcher expressions the alerts must fulfil
-   */
-  async activeAlerts(matchers) {
+  /** Returns the firing alerts that are neither silenced nor inhibited */
+  async activeAlerts() {
     const data = await this.list("/api/v2/alerts", {
       active: "true",
       silenced: "false",
       inhibited: "false",
       // alerts not yet processed may still turn out to be silenced
-      unprocessed: "false",
-      filter: matchers
+      unprocessed: "false"
     });
     return data.map(toAlert).filter((entry) => entry !== void 0);
   }
-  /**
-   * Returns the firing alerts that are silenced or inhibited
-   *
-   * @param matchers - Matcher expressions the alerts must fulfil
-   */
-  async suppressedAlerts(matchers) {
+  /** Returns the firing alerts that are silenced or inhibited */
+  async suppressedAlerts() {
     const data = await this.list("/api/v2/alerts", {
       active: "false",
       silenced: "true",
       inhibited: "true",
-      unprocessed: "false",
-      filter: matchers
+      unprocessed: "false"
     });
     return data.map(toAlert).filter((entry) => entry !== void 0);
   }
@@ -143,7 +133,6 @@ class AlertmanagerClient {
     var _a;
     const response = await this.httpGet(`${this.options.baseUrl}${path}`, {
       params,
-      paramsSerializer: { indexes: null },
       timeout: this.options.timeoutMs,
       auth: this.options.username ? { username: this.options.username, password: (_a = this.options.password) != null ? _a : "" } : void 0
     });

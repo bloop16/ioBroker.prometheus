@@ -1,7 +1,6 @@
 {
     "0.0.0.0 = all interfaces": "0.0.0.0 = todas las interfaces",
     "Aggregation": "Agregación",
-    "Alert filters (optional)": "Filtros de alerta (opcional)",
     "Alertmanager": "Alertmanager",
     "Alertmanager URL": "URL del Alertmanager",
     "Allowed characters: letters, digits, underscore, colon. Empty = iobroker_state with the state id as label": "Caracteres permitidos: letras, dígitos, guión bajo, dos puntos. Vacío = iobroker_state con la identificación del estado como etiqueta",
@@ -25,7 +24,6 @@
     "HTTP timeout for all Prometheus API requests": "Tiempo de espera HTTP para todas las solicitudes de API de Prometheus",
     "How multiple series are combined": "Cómo se combinan varias series",
     "How often this query is executed (seconds)": "Con qué frecuencia se ejecuta esta consulta (segundos)",
-    "Label": "Etiqueta",
     "Last value (no aggregation)": "Último valor (sin agregación)",
     "Live preview": "Vista previa en vivo",
     "Loaded live from the configured Prometheus server": "Cargado en vivo desde el servidor Prometheus configurado",
@@ -35,9 +33,7 @@
     "Minimum": "Mínimo",
     "Name": "Nombre",
     "One state per label value combination is created": "Se crea un estado por combinación de valores de etiqueta",
-    "Only alerts matching all rows are shown, e.g. severity =~ critical|warning": "Solo se muestran las alertas que coinciden con todas las filas, p. gravedad =~ crítico|advertencia",
     "Only series with this label value are included": "Solo se incluyen series con este valor de etiqueta.",
-    "Operator": "Operador",
     "Optional basic auth password": "Contraseña de autenticación básica opcional",
     "Optional basic auth user name": "Nombre de usuario de autenticación básica opcional",
     "Password (optional)": "Contraseña (opcional)",
@@ -56,7 +52,6 @@
     "Test connection": "Conexión de prueba",
     "This state cannot be exported: Prometheus stores numbers only (numeric and boolean states are supported)": "Este estado no se puede exportar: Prometheus solo almacena números (se admiten estados numéricos y booleanos)",
     "Username (optional)": "Nombre de usuario (opcional)",
-    "Value": "Valor",
     "Value is exposed on the /metrics endpoint of the adapter (exporter must be enabled in the instance settings)": "El valor se expone en el punto final /metrics del adaptador (el exportador debe estar habilitado en la configuración de la instancia)",
     "When disabled, the alertmanager states are removed": "Cuando está deshabilitado, los estados del Alertmanager se eliminan"
 }

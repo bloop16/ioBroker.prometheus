@@ -5,6 +5,8 @@
  * dashboard can bind to, unlike fingerprints that come and go with each alert.
  */
 
+import { createHash } from "node:crypto";
+
 import type { AlertEntry } from "./alertmanager-client";
 import { summarizeAlerts, type AlertJsonEntry } from "./alertmanager-summary";
 import type { AlertRule } from "./prometheus-client";
@@ -38,7 +40,14 @@ export interface AlertGroup {
 }
 
 function keyOf(name: string | undefined): string {
-    const key = name ? sanitizeIdSegment(name) : UNNAMED;
+    if (!name) {
+        return UNNAMED;
+    }
+    const key = sanitizeIdSegment(name);
+    if (key !== name) {
+        // sanitizing is lossy, so different names could otherwise share a folder
+        return `${key}_${createHash("sha256").update(name).digest("hex").slice(0, 6)}`;
+    }
     return RESERVED_KEYS.includes(key) ? `${key}_alert` : key;
 }
 

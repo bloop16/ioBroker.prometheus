@@ -1,7 +1,6 @@
 {
     "0.0.0.0 = all interfaces": "0.0.0.0 = tutte le interfacce",
     "Aggregation": "Aggregazione",
-    "Alert filters (optional)": "Filtri di avviso (facoltativi)",
     "Alertmanager": "Alertmanager",
     "Alertmanager URL": "URL del Alertmanager",
     "Allowed characters: letters, digits, underscore, colon. Empty = iobroker_state with the state id as label": "Caratteri consentiti: lettere, cifre, carattere di sottolineatura, due punti. Vuoto = iobroker_state con l'ID dello stato come etichetta",
@@ -25,7 +24,6 @@
     "HTTP timeout for all Prometheus API requests": "Timeout HTTP per tutte le richieste API Prometheus",
     "How multiple series are combined": "Come vengono combinate più serie",
     "How often this query is executed (seconds)": "La frequenza con cui viene eseguita questa query (secondi)",
-    "Label": "Etichetta",
     "Last value (no aggregation)": "Ultimo valore (nessuna aggregazione)",
     "Live preview": "Anteprima dal vivo",
     "Loaded live from the configured Prometheus server": "Caricato in tempo reale dal server Prometheus configurato",
@@ -35,9 +33,7 @@
     "Minimum": "Minimo",
     "Name": "Nome",
     "One state per label value combination is created": "Viene creato uno stato per combinazione di valori etichetta",
-    "Only alerts matching all rows are shown, e.g. severity =~ critical|warning": "Vengono visualizzati solo gli avvisi che corrispondono a tutte le righe, ad es. gravità =~ critico|avviso",
     "Only series with this label value are included": "Sono incluse solo le serie con questo valore di etichetta",
-    "Operator": "Operatore",
     "Optional basic auth password": "Password di autenticazione di base opzionale",
     "Optional basic auth user name": "Nome utente di autenticazione di base facoltativo",
     "Password (optional)": "Password (facoltativa)",
@@ -56,7 +52,6 @@
     "Test connection": "Testare la connessione",
     "This state cannot be exported: Prometheus stores numbers only (numeric and boolean states are supported)": "Questo stato non può essere esportato: Prometheus memorizza solo numeri (sono supportati gli stati numerici e booleani)",
     "Username (optional)": "Nome utente (facoltativo)",
-    "Value": "Valore",
     "Value is exposed on the /metrics endpoint of the adapter (exporter must be enabled in the instance settings)": "Il valore è esposto sull'endpoint /metrics dell'adattatore (l'esportatore deve essere abilitato nelle impostazioni dell'istanza)",
     "When disabled, the alertmanager states are removed": "Quando disabilitato, gli stati di alertmanager vengono rimossi"
 }

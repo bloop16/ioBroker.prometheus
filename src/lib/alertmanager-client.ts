@@ -126,35 +126,25 @@ export class AlertmanagerClient {
         this.httpGet = httpGet ?? ((url, requestOptions) => axios.get(url, requestOptions));
     }
 
-    /**
-     * Returns the firing alerts that are neither silenced nor inhibited
-     *
-     * @param matchers - Matcher expressions the alerts must fulfil
-     */
-    public async activeAlerts(matchers: string[]): Promise<AlertEntry[]> {
+    /** Returns the firing alerts that are neither silenced nor inhibited */
+    public async activeAlerts(): Promise<AlertEntry[]> {
         const data = await this.list("/api/v2/alerts", {
             active: "true",
             silenced: "false",
             inhibited: "false",
             // alerts not yet processed may still turn out to be silenced
             unprocessed: "false",
-            filter: matchers,
         });
         return data.map(toAlert).filter(entry => entry !== undefined);
     }
 
-    /**
-     * Returns the firing alerts that are silenced or inhibited
-     *
-     * @param matchers - Matcher expressions the alerts must fulfil
-     */
-    public async suppressedAlerts(matchers: string[]): Promise<AlertEntry[]> {
+    /** Returns the firing alerts that are silenced or inhibited */
+    public async suppressedAlerts(): Promise<AlertEntry[]> {
         const data = await this.list("/api/v2/alerts", {
             active: "false",
             silenced: "true",
             inhibited: "true",
             unprocessed: "false",
-            filter: matchers,
         });
         return data.map(toAlert).filter(entry => entry !== undefined);
     }
@@ -174,7 +164,7 @@ export class AlertmanagerClient {
         return asString(data.versionInfo.version) || "unknown";
     }
 
-    private async list(path: string, params?: Record<string, string | string[]>): Promise<unknown[]> {
+    private async list(path: string, params?: Record<string, string>): Promise<unknown[]> {
         const data = await this.request(path, params);
         if (!Array.isArray(data)) {
             throw new Error(`Unexpected response from ${path}: expected an array`);
@@ -182,10 +172,9 @@ export class AlertmanagerClient {
         return data;
     }
 
-    private async request(path: string, params?: Record<string, string | string[]>): Promise<unknown> {
+    private async request(path: string, params?: Record<string, string>): Promise<unknown> {
         const response = await this.httpGet(`${this.options.baseUrl}${path}`, {
             params,
-            paramsSerializer: { indexes: null },
             timeout: this.options.timeoutMs,
             auth: this.options.username
                 ? { username: this.options.username, password: this.options.password ?? "" }

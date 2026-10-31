@@ -112,8 +112,7 @@
     "alertmanagerUrl": "",
     "alertmanagerUsername": "",
     "alertmanagerPassword": "",
-    "alertmanagerPollInterval": 60,
-    "alertmanagerFilters": []
+    "alertmanagerPollInterval": 60
   },
   "encryptedNative": [
     "password",

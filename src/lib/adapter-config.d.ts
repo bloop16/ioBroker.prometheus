@@ -1,6 +1,5 @@
 // This file extends the AdapterConfig type from "@iobroker/types"
 
-import type { RawAlertFilter } from "./alertmanager-config";
 import type { RawSourceConfig } from "./source-config";
 
 // Augment the globally declared type ioBroker.AdapterConfig
@@ -33,8 +32,6 @@ declare global {
             alertmanagerPassword: string;
             /** Poll interval of the Alertmanager in seconds */
             alertmanagerPollInterval: number;
-            /** Filter rows restricting the alerts */
-            alertmanagerFilters: RawAlertFilter[];
         }
     }
 }

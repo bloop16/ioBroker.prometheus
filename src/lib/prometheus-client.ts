@@ -44,9 +44,7 @@ export interface AlertRule {
 /** Options of one HTTP GET request */
 export interface RequestOptions {
     /** Query parameters */
-    params?: Record<string, string | string[]>;
-    /** indexes: null serializes arrays as repeated keys (a=1&a=2) instead of a[]=1&a[]=2 */
-    paramsSerializer?: { indexes: null };
+    params?: Record<string, string>;
     /** Basic auth credentials */
     auth?: { username: string; password: string };
     /** Timeout in milliseconds */

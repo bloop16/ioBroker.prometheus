@@ -122,7 +122,7 @@ describe("alertmanager-groups => groupAlerts", () => {
     it("sanitizes the key but keeps the display name", () => {
         const [group] = groupAlerts([alert("Disk.Full 1", "info", "2026-10-01T10:00:00Z")], []);
 
-        expect(group.key).to.equal("Disk_Full_1");
+        expect(group.key).to.match(/^Disk_Full_1_[0-9a-f]{6}$/);
         expect(group.name).to.equal("Disk.Full 1");
     });
 
@@ -137,6 +137,21 @@ describe("alertmanager-groups => groupAlerts", () => {
 
         expect(groups.map(group => group.key)).to.deep.equal(["count_alert", "json_alert"]);
         expect(groups[0].name).to.equal("count");
+    });
+
+    it("keeps names apart that sanitize to the same id", () => {
+        const groups = groupAlerts(
+            [],
+            [
+                { name: "Disk Full", severity: "" },
+                { name: "Disk_Full", severity: "" },
+                { name: "日本", severity: "" },
+                { name: "ÄÖ", severity: "" },
+            ],
+        );
+
+        expect(new Set(groups.map(group => group.key)).size).to.equal(4);
+        expect(groups.map(group => group.key)).to.include("Disk_Full");
     });
 
     it("collects alerts without a name in one group", () => {

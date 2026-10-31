@@ -253,46 +253,6 @@
             "xl": 2,
             "newLine": true
         },
-        "alertmanagerFilters": {
-            "type": "table",
-            "label": "Alert filters (optional)",
-            "help": "Only alerts matching all rows are shown, e.g. severity =~ critical|warning",
-            "hidden": "!data.alertmanagerEnabled",
-            "noDelete": false,
-            "items": [
-                {
-                    "attr": "label",
-                    "type": "text",
-                    "title": "Label",
-                    "width": "35%"
-                },
-                {
-                    "attr": "operator",
-                    "type": "select",
-                    "title": "Operator",
-                    "width": "15%",
-                    "default": "=",
-                    "options": [
-                        { "label": "=", "value": "=" },
-                        { "label": "!=", "value": "!=" },
-                        { "label": "=~", "value": "=~" },
-                        { "label": "!~", "value": "!~" }
-                    ]
-                },
-                {
-                    "attr": "value",
-                    "type": "text",
-                    "title": "Value",
-                    "width": "50%"
-                }
-            ],
-            "xs": 12,
-            "sm": 12,
-            "md": 12,
-            "lg": 12,
-            "xl": 12,
-            "newLine": true
-        },
         "_sourcesHeader": {
             "type": "header",
             "text": "Sources",

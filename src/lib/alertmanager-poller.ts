@@ -16,7 +16,12 @@ export const ALERTMANAGER_CHANNEL = "alertmanager";
 const ALERT_FOLDER = `${ALERTMANAGER_CHANNEL}.alerts`;
 
 /** Objects of earlier development versions, removed on start */
-const LEGACY_OBJECTS = [`${ALERTMANAGER_CHANNEL}.info`, `${ALERT_FOLDER}.byName`, `${ALERT_FOLDER}.countBySeverity`];
+const LEGACY_OBJECTS = [
+    { id: `${ALERTMANAGER_CHANNEL}.info`, type: "channel" },
+    // folders, as an alert with one of these names would be a channel
+    { id: `${ALERT_FOLDER}.byName`, type: "folder" },
+    { id: `${ALERT_FOLDER}.countBySeverity`, type: "folder" },
+];
 
 /** Adapter functions used by the poller */
 export type PollerHost = Pick<
@@ -36,10 +41,10 @@ export type PollerHost = Pick<
 
 /** Data source of the poller */
 export interface AlertmanagerSource {
-    /** Returns the firing alerts matching all matchers */
-    activeAlerts(matchers: string[]): Promise<AlertEntry[]>;
+    /** Returns the firing alerts that are neither silenced nor inhibited */
+    activeAlerts(): Promise<AlertEntry[]>;
     /** Returns the firing alerts that are silenced or inhibited */
-    suppressedAlerts(matchers: string[]): Promise<AlertEntry[]>;
+    suppressedAlerts(): Promise<AlertEntry[]>;
     /** Returns the active silences */
     activeSilences(): Promise<SilenceEntry[]>;
 }
@@ -168,8 +173,8 @@ export class AlertmanagerPoller {
     }> {
         try {
             const [alerts, suppressed, silences] = await Promise.all([
-                this.source.activeAlerts(this.config.matchers),
-                this.source.suppressedAlerts(this.config.matchers),
+                this.source.activeAlerts(),
+                this.source.suppressedAlerts(),
                 this.source.activeSilences(),
             ]);
             return { alerts, suppressed, silences };
@@ -289,8 +294,8 @@ export class AlertmanagerPoller {
     }
 
     private async removeLegacyObjects(): Promise<void> {
-        for (const id of LEGACY_OBJECTS) {
-            if (await this.host.getObjectAsync(id)) {
+        for (const { id, type } of LEGACY_OBJECTS) {
+            if ((await this.host.getObjectAsync(id))?.type === type) {
                 await this.host.delObjectAsync(id, { recursive: true });
             }
         }
@@ -318,15 +323,18 @@ export async function startAlertmanagerPoller(
     timeoutMs: number,
     onHealth: (healthy: boolean) => void,
 ): Promise<AlertmanagerPoller | undefined> {
-    const { config, errors } = normalizeAlertmanagerConfig({
+    const config = normalizeAlertmanagerConfig({
         url: settings.alertmanagerUrl,
         pollInterval: settings.alertmanagerPollInterval,
-        filters: settings.alertmanagerFilters,
     });
-    for (const error of errors) {
-        host.log.warn(`Alertmanager: ${error}`);
-    }
     if (!config) {
+        const message = "Invalid Alertmanager URL (expected e.g. http://host:9093)";
+        host.log.warn(message);
+        onHealth(false);
+        // states of an earlier run keep their values, so tell why they no longer change
+        if (await host.getObjectAsync(`${ALERTMANAGER_CHANNEL}.error`)) {
+            await host.setStateChangedAsync(`${ALERTMANAGER_CHANNEL}.error`, message, true);
+        }
         return undefined;
     }
 
@@ -337,16 +345,14 @@ export async function startAlertmanagerPoller(
         password: settings.alertmanagerPassword || undefined,
     });
     const prometheusUrl = validateUrl(settings.url);
-    // with filters the rules would add folders for alerts that can never show up
-    const rules =
-        prometheusUrl && config.matchers.length === 0
-            ? new PrometheusClient({
-                  baseUrl: prometheusUrl,
-                  timeoutMs,
-                  username: settings.username || undefined,
-                  password: settings.password || undefined,
-              })
-            : undefined;
+    const rules = prometheusUrl
+        ? new PrometheusClient({
+              baseUrl: prometheusUrl,
+              timeoutMs,
+              username: settings.username || undefined,
+              password: settings.password || undefined,
+          })
+        : undefined;
     const poller = new AlertmanagerPoller(host, client, config, onHealth, rules);
     await poller.start();
     // only the origin: the URL may carry credentials
