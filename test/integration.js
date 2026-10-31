@@ -160,10 +160,9 @@ tests.integration(path.join(__dirname, ".."), {
                 const ns = "prometheus.0.alertmanager";
                 expect((await harness.states.getStateAsync(`${ns}.alerts.count`)).val).to.equal(1);
                 expect((await harness.states.getStateAsync(`${ns}.silences.count`)).val).to.equal(1);
-                expect((await harness.states.getStateAsync(`${ns}.alerts.countBySeverity.critical`)).val).to.equal(1);
-                const folder = await harness.objects.getObjectAsync(`${ns}.alerts.byName.DiskFull`);
+                const folder = await harness.objects.getObjectAsync(`${ns}.alerts.DiskFull`);
                 expect(folder.type).to.equal("channel");
-                const watchdog = `${ns}.alerts.byName.Watchdog`;
+                const watchdog = `${ns}.alerts.Watchdog`;
                 expect((await waitForState(harness, `${watchdog}.silenced`)).val).to.equal(
                     true,
                 );
@@ -176,6 +175,22 @@ tests.integration(path.join(__dirname, ".."), {
                     'filter=severity=~"critical|warning"',
                 );
                 expect((await waitForState(harness, "prometheus.0.info.connection")).val).to.equal(true);
+
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                const objects = await harness.objects.getObjectListAsync({
+                    startkey: `${ns}.`,
+                    endkey: `${ns}.\u9999`,
+                });
+                const stateIds = objects.rows.filter(row => row.value.type === "state").map(row => row.id);
+                expect(stateIds).to.have.length.greaterThan(10);
+                for (const id of stateIds) {
+                    const state = await harness.states.getStateAsync(id);
+                    expect(state, id).to.not.equal(null);
+                    expect(state.ack, id).to.equal(true);
+                }
+                const ids = objects.rows.map(row => row.id);
+                expect(ids).to.not.include(`${ns}.info`);
+                expect(ids.filter(id => /byName|countBySeverity/.test(id))).to.deep.equal([]);
 
                 const response = await new Promise((resolve, reject) => {
                     harness.sendTo(

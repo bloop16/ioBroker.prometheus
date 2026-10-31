@@ -107,15 +107,15 @@ The adapter creates these read-only states below `alertmanager`:
 | State | Description |
 |-------|-------------|
 | `alerts.count` | Active alerts, without silenced and inhibited ones |
-| `alerts.countBySeverity.<severity>` | Active alerts per `severity` label (`none` if an alert has no such label); `0` once the last alert of a severity is resolved |
 | `alerts.json` | JSON array with `alertname`, `severity`, `instance`, `summary`, `startsAt`, `fingerprint`; newest first |
-| `alerts.byName.<alertname>` | One folder per alert, see below |
+| `alerts.<alertname>` | One folder per alert, see below |
 | `silences.count` | Active silences |
 | `silences.json` | JSON array with `id`, `matchers`, `createdBy`, `comment`, `startsAt`, `endsAt`; ending soonest first |
 | `lastUpdate` | Timestamp of the last successful update |
 | `error` | Last error message; empty while everything is ok |
 
-Every alert gets its own folder below `alerts.byName`, named after its `alertname`. If the
+Every alert gets its own folder below `alerts`, named after its `alertname` (alerts called `count`
+or `json` get the suffix `_alert`). If the
 Prometheus server is configured too, its alert rules are read automatically, so all alerts exist
 before they ever fire and can be bound to a dashboard right away. With alert filters only alerts
 that have actually fired get a folder, as rules cannot be matched against the filters.
@@ -126,9 +126,9 @@ that have actually fired get a folder, as rules cannot be matched against the fi
 | `silenced` | `true` while at least one instance fires but is silenced or inhibited; it does not count as `active` |
 | `count` | Number of firing instances that are not silenced or inhibited; one rule usually fires once per instance |
 | `severity` | Severity of the firing instances, otherwise that of the rule |
-| `summary` | Summary of the newest firing instance |
-| `startsAt` | Start of the newest firing instance |
-| `json` | All firing instances, as in `alerts.json` |
+| `summary` | Summary of the newest firing instance; silenced ones are only used if nothing else fires |
+| `startsAt` | Start of that instance; empty while the alert does not fire |
+| `json` | All firing instances that are not silenced or inhibited, as in `alerts.json` |
 
 If the Alertmanager is unreachable the last values are kept, `info.connection` of the instance
 turns `false` and `alertmanager.error` shows the reason, so check these before relying on
@@ -156,9 +156,8 @@ reachable (a query returning no data does not count as a connection problem). Wi
 
 * States created for group-by label values that no longer exist are not deleted automatically.
 * All sources query the single configured Prometheus server.
-* `alertmanager.alerts.countBySeverity.<severity>` states stay at `0` after their last alert is
-  resolved. They are only removed when the Alertmanager feature is disabled.
-* The same applies to `alertmanager.alerts.byName` folders of deleted alert rules.
+* Folders below `alertmanager.alerts` of deleted alert rules stay until the Alertmanager feature
+  is disabled.
 
 ## Changelog
 <!--

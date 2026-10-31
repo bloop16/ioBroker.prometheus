@@ -7,19 +7,6 @@ function alert(fingerprint: string, startsAt: string, labels: Record<string, str
 }
 
 describe("alertmanager-summary => summarizeAlerts", () => {
-    it("counts alerts per sanitized severity and uses none for missing ones", () => {
-        const summary = summarizeAlerts([
-            alert("a", "2026-10-01T10:00:00Z", { severity: "critical" }),
-            alert("b", "2026-10-01T10:00:00Z", { severity: "critical" }),
-            alert("c", "2026-10-01T10:00:00Z", { severity: "very.high" }),
-            alert("d", "2026-10-01T10:00:00Z"),
-            alert("e", "2026-10-01T10:00:00Z", { severity: "" }),
-        ]);
-
-        expect(summary.count).to.equal(5);
-        expect(summary.bySeverity).to.deep.equal({ critical: 2, very_high: 1, none: 2 });
-    });
-
     it("produces compact entries, newest first and independent of the input order", () => {
         const first = alert("a", "2026-10-01T10:00:00.000Z", { alertname: "A", instance: "i", severity: "info" });
         const second = alert("b", "2026-10-02T10:00:00Z", { alertname: "B" });

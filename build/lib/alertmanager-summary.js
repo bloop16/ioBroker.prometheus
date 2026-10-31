@@ -20,15 +20,12 @@ var alertmanager_summary_exports = {};
 __export(alertmanager_summary_exports, {
   MAX_JSON_ENTRIES: () => MAX_JSON_ENTRIES,
   MAX_TEXT_LENGTH: () => MAX_TEXT_LENGTH,
-  NO_SEVERITY: () => NO_SEVERITY,
   summarizeAlerts: () => summarizeAlerts,
   summarizeSilences: () => summarizeSilences
 });
 module.exports = __toCommonJS(alertmanager_summary_exports);
-var import_source_config = require("./source-config");
 const MAX_JSON_ENTRIES = 500;
 const MAX_TEXT_LENGTH = 500;
-const NO_SEVERITY = "none";
 function truncate(text) {
   return text.slice(0, MAX_TEXT_LENGTH);
 }
@@ -46,20 +43,12 @@ function toJsonEntry(alert) {
     fingerprint: alert.fingerprint
   };
 }
-function countBySeverity(alerts) {
-  return alerts.reduce((counts, alert) => {
-    var _a;
-    const key = alert.labels.severity ? (0, import_source_config.sanitizeIdSegment)(alert.labels.severity) : NO_SEVERITY;
-    return { ...counts, [key]: ((_a = counts[key]) != null ? _a : 0) + 1 };
-  }, {});
-}
 function summarizeAlerts(alerts) {
   const sorted = [...alerts].sort(
     (a, b) => timestamp(b.startsAt) - timestamp(a.startsAt) || a.fingerprint.localeCompare(b.fingerprint)
   );
   return {
     count: alerts.length,
-    bySeverity: countBySeverity(alerts),
     entries: sorted.slice(0, MAX_JSON_ENTRIES).map(toJsonEntry)
   };
 }
@@ -74,7 +63,6 @@ function summarizeSilences(silences) {
 0 && (module.exports = {
   MAX_JSON_ENTRIES,
   MAX_TEXT_LENGTH,
-  NO_SEVERITY,
   summarizeAlerts,
   summarizeSilences
 });

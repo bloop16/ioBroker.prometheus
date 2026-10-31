@@ -13,9 +13,10 @@ import { validateUrl } from "./source-config";
 /** Root of the object tree; everything below it can be removed at once */
 export const ALERTMANAGER_CHANNEL = "alertmanager";
 
-const SEVERITY_FOLDER = `${ALERTMANAGER_CHANNEL}.alerts.countBySeverity`;
-/** Separate from alerts so an alert called "count" cannot collide with the summary states */
-const ALERT_FOLDER = `${ALERTMANAGER_CHANNEL}.alerts.byName`;
+const ALERT_FOLDER = `${ALERTMANAGER_CHANNEL}.alerts`;
+
+/** Objects of earlier development versions, removed on start */
+const LEGACY_OBJECTS = [`${ALERTMANAGER_CHANNEL}.info`, `${ALERT_FOLDER}.byName`, `${ALERT_FOLDER}.countBySeverity`];
 
 /** Adapter functions used by the poller */
 export type PollerHost = Pick<
@@ -23,6 +24,9 @@ export type PollerHost = Pick<
     | "namespace"
     | "log"
     | "setObjectNotExistsAsync"
+    | "extendObjectAsync"
+    | "getObjectAsync"
+    | "delObjectAsync"
     | "getForeignObjectsAsync"
     | "setStateAsync"
     | "setStateChangedAsync"
@@ -50,9 +54,7 @@ type StateSpec = Pick<ioBroker.StateCommon, "name" | "type" | "role">;
 
 const CONTAINERS: Array<{ id: string; type: "channel" | "folder"; name: string }> = [
     { id: ALERTMANAGER_CHANNEL, type: "channel", name: "Alertmanager" },
-    { id: `${ALERTMANAGER_CHANNEL}.alerts`, type: "channel", name: "Active alerts" },
-    { id: SEVERITY_FOLDER, type: "folder", name: "Active alerts by severity" },
-    { id: ALERT_FOLDER, type: "folder", name: "Alerts by name" },
+    { id: ALERT_FOLDER, type: "folder", name: "Alerts" },
     { id: `${ALERTMANAGER_CHANNEL}.silences`, type: "channel", name: "Active silences" },
 ];
 
@@ -88,8 +90,6 @@ export class AlertmanagerPoller {
     private running: Promise<void> = Promise.resolve();
     private inFlight = false;
     private stopped = false;
-    /** Severities with a state, so they can be reset once their alerts resolve */
-    private knownSeverities = new Set<string>();
     /** Alerts with a folder, so they can be reset once they resolve */
     private knownAlerts = new Set<string>();
 
@@ -110,9 +110,9 @@ export class AlertmanagerPoller {
 
     /** Creates the objects, polls once and starts the timer */
     public async start(): Promise<void> {
+        await this.removeLegacyObjects();
         await this.ensureObjects();
-        this.knownSeverities = await this.loadKeys(SEVERITY_FOLDER, "state");
-        this.knownAlerts = await this.loadKeys(ALERT_FOLDER, "channel");
+        this.knownAlerts = await this.loadAlertKeys();
         // folders of a previous run may lack states added by an update
         for (const key of this.knownAlerts) {
             await this.ensureAlertFolder(key, key);
@@ -205,7 +205,6 @@ export class AlertmanagerPoller {
         const alertSummary = summarizeAlerts(alerts);
         const silenceSummary = summarizeSilences(silences);
 
-        await this.writeSeverities(alertSummary.bySeverity);
         await this.write("alerts.count", alertSummary.count);
         await this.write("alerts.json", JSON.stringify(alertSummary.entries));
         await this.write("silences.count", silenceSummary.count);
@@ -267,29 +266,14 @@ export class AlertmanagerPoller {
         }
     }
 
-    private async writeSeverities(bySeverity: Record<string, number>): Promise<void> {
-        for (const severity of Object.keys(bySeverity)) {
-            if (!this.knownSeverities.has(severity)) {
-                await this.ensureState(`${SEVERITY_FOLDER}.${severity}`, {
-                    name: `Active alerts with severity ${severity}`,
-                    type: "number",
-                    role: "value",
-                });
-                this.knownSeverities = new Set([...this.knownSeverities, severity]);
-            }
-        }
-        for (const severity of this.knownSeverities) {
-            await this.host.setStateChangedAsync(`${SEVERITY_FOLDER}.${severity}`, bySeverity[severity] ?? 0, true);
-        }
-    }
-
     private async write(state: string, value: ioBroker.StateValue): Promise<void> {
         await this.host.setStateChangedAsync(`${ALERTMANAGER_CHANNEL}.${state}`, value, true);
     }
 
     private async ensureObjects(): Promise<void> {
         for (const { id, type, name } of CONTAINERS) {
-            await this.host.setObjectNotExistsAsync(id, { type, common: { name }, native: {} });
+            // extend, as containers of earlier versions may have another type
+            await this.host.extendObjectAsync(id, { type, common: { name }, native: {} });
         }
         for (const [state, spec] of Object.entries(STATES)) {
             await this.ensureState(`${ALERTMANAGER_CHANNEL}.${state}`, spec);
@@ -304,9 +288,17 @@ export class AlertmanagerPoller {
         });
     }
 
-    private async loadKeys(folder: string, type: "state" | "channel"): Promise<Set<string>> {
-        const prefix = `${this.host.namespace}.${folder}.`;
-        const objects = await this.host.getForeignObjectsAsync(`${prefix}*`, type);
+    private async removeLegacyObjects(): Promise<void> {
+        for (const id of LEGACY_OBJECTS) {
+            if (await this.host.getObjectAsync(id)) {
+                await this.host.delObjectAsync(id, { recursive: true });
+            }
+        }
+    }
+
+    private async loadAlertKeys(): Promise<Set<string>> {
+        const prefix = `${this.host.namespace}.${ALERT_FOLDER}.`;
+        const objects = await this.host.getForeignObjectsAsync(`${prefix}*`, "channel");
         return new Set(Object.keys(objects).map(id => id.slice(prefix.length)));
     }
 }

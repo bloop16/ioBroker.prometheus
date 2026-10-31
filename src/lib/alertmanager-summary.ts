@@ -6,14 +6,11 @@
  */
 
 import type { AlertEntry, SilenceEntry } from "./alertmanager-client";
-import { sanitizeIdSegment } from "./source-config";
 
 /** Maximum number of entries written to a JSON state; the counts stay exact */
 export const MAX_JSON_ENTRIES = 500;
 /** Maximum length of free text taken over from the server */
 export const MAX_TEXT_LENGTH = 500;
-/** State key for alerts without a severity label */
-export const NO_SEVERITY = "none";
 
 /** Compact form of one alert for the JSON state */
 export interface AlertJsonEntry {
@@ -35,8 +32,6 @@ export interface AlertJsonEntry {
 export interface AlertSummary {
     /** Number of firing alerts */
     count: number;
-    /** Number of firing alerts per sanitized severity */
-    bySeverity: Record<string, number>;
     /** Compact alerts, newest first */
     entries: AlertJsonEntry[];
 }
@@ -68,13 +63,6 @@ function toJsonEntry(alert: AlertEntry): AlertJsonEntry {
     };
 }
 
-function countBySeverity(alerts: AlertEntry[]): Record<string, number> {
-    return alerts.reduce<Record<string, number>>((counts, alert) => {
-        const key = alert.labels.severity ? sanitizeIdSegment(alert.labels.severity) : NO_SEVERITY;
-        return { ...counts, [key]: (counts[key] ?? 0) + 1 };
-    }, {});
-}
-
 /**
  * Summarizes the firing alerts
  *
@@ -86,7 +74,6 @@ export function summarizeAlerts(alerts: AlertEntry[]): AlertSummary {
     );
     return {
         count: alerts.length,
-        bySeverity: countBySeverity(alerts),
         entries: sorted.slice(0, MAX_JSON_ENTRIES).map(toJsonEntry),
     };
 }

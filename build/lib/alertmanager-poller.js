@@ -30,13 +30,11 @@ var import_alertmanager_summary = require("./alertmanager-summary");
 var import_prometheus_client = require("./prometheus-client");
 var import_source_config = require("./source-config");
 const ALERTMANAGER_CHANNEL = "alertmanager";
-const SEVERITY_FOLDER = `${ALERTMANAGER_CHANNEL}.alerts.countBySeverity`;
-const ALERT_FOLDER = `${ALERTMANAGER_CHANNEL}.alerts.byName`;
+const ALERT_FOLDER = `${ALERTMANAGER_CHANNEL}.alerts`;
+const LEGACY_OBJECTS = [`${ALERTMANAGER_CHANNEL}.info`, `${ALERT_FOLDER}.byName`, `${ALERT_FOLDER}.countBySeverity`];
 const CONTAINERS = [
   { id: ALERTMANAGER_CHANNEL, type: "channel", name: "Alertmanager" },
-  { id: `${ALERTMANAGER_CHANNEL}.alerts`, type: "channel", name: "Active alerts" },
-  { id: SEVERITY_FOLDER, type: "folder", name: "Active alerts by severity" },
-  { id: ALERT_FOLDER, type: "folder", name: "Alerts by name" },
+  { id: ALERT_FOLDER, type: "folder", name: "Alerts" },
   { id: `${ALERTMANAGER_CHANNEL}.silences`, type: "channel", name: "Active silences" }
 ];
 const STATES = {
@@ -80,16 +78,14 @@ class AlertmanagerPoller {
   running = Promise.resolve();
   inFlight = false;
   stopped = false;
-  /** Severities with a state, so they can be reset once their alerts resolve */
-  knownSeverities = /* @__PURE__ */ new Set();
   /** Alerts with a folder, so they can be reset once they resolve */
   knownAlerts = /* @__PURE__ */ new Set();
   /** Creates the objects, polls once and starts the timer */
   async start() {
     var _a;
+    await this.removeLegacyObjects();
     await this.ensureObjects();
-    this.knownSeverities = await this.loadKeys(SEVERITY_FOLDER, "state");
-    this.knownAlerts = await this.loadKeys(ALERT_FOLDER, "channel");
+    this.knownAlerts = await this.loadAlertKeys();
     for (const key of this.knownAlerts) {
       await this.ensureAlertFolder(key, key);
     }
@@ -162,7 +158,6 @@ class AlertmanagerPoller {
   async writeSummary(alerts, suppressed, silences) {
     const alertSummary = (0, import_alertmanager_summary.summarizeAlerts)(alerts);
     const silenceSummary = (0, import_alertmanager_summary.summarizeSilences)(silences);
-    await this.writeSeverities(alertSummary.bySeverity);
     await this.write("alerts.count", alertSummary.count);
     await this.write("alerts.json", JSON.stringify(alertSummary.entries));
     await this.write("silences.count", silenceSummary.count);
@@ -219,28 +214,12 @@ class AlertmanagerPoller {
       await this.ensureState(`${id}.${state}`, spec);
     }
   }
-  async writeSeverities(bySeverity) {
-    var _a;
-    for (const severity of Object.keys(bySeverity)) {
-      if (!this.knownSeverities.has(severity)) {
-        await this.ensureState(`${SEVERITY_FOLDER}.${severity}`, {
-          name: `Active alerts with severity ${severity}`,
-          type: "number",
-          role: "value"
-        });
-        this.knownSeverities = /* @__PURE__ */ new Set([...this.knownSeverities, severity]);
-      }
-    }
-    for (const severity of this.knownSeverities) {
-      await this.host.setStateChangedAsync(`${SEVERITY_FOLDER}.${severity}`, (_a = bySeverity[severity]) != null ? _a : 0, true);
-    }
-  }
   async write(state, value) {
     await this.host.setStateChangedAsync(`${ALERTMANAGER_CHANNEL}.${state}`, value, true);
   }
   async ensureObjects() {
     for (const { id, type, name } of CONTAINERS) {
-      await this.host.setObjectNotExistsAsync(id, { type, common: { name }, native: {} });
+      await this.host.extendObjectAsync(id, { type, common: { name }, native: {} });
     }
     for (const [state, spec] of Object.entries(STATES)) {
       await this.ensureState(`${ALERTMANAGER_CHANNEL}.${state}`, spec);
@@ -253,9 +232,16 @@ class AlertmanagerPoller {
       native: {}
     });
   }
-  async loadKeys(folder, type) {
-    const prefix = `${this.host.namespace}.${folder}.`;
-    const objects = await this.host.getForeignObjectsAsync(`${prefix}*`, type);
+  async removeLegacyObjects() {
+    for (const id of LEGACY_OBJECTS) {
+      if (await this.host.getObjectAsync(id)) {
+        await this.host.delObjectAsync(id, { recursive: true });
+      }
+    }
+  }
+  async loadAlertKeys() {
+    const prefix = `${this.host.namespace}.${ALERT_FOLDER}.`;
+    const objects = await this.host.getForeignObjectsAsync(`${prefix}*`, "channel");
     return new Set(Object.keys(objects).map((id) => id.slice(prefix.length)));
   }
 }

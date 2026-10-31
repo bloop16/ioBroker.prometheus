@@ -24,8 +24,10 @@ module.exports = __toCommonJS(alertmanager_groups_exports);
 var import_alertmanager_summary = require("./alertmanager-summary");
 var import_source_config = require("./source-config");
 const UNNAMED = "unnamed";
+const RESERVED_KEYS = ["count", "json"];
 function keyOf(name) {
-  return name ? (0, import_source_config.sanitizeIdSegment)(name) : UNNAMED;
+  const key = name ? (0, import_source_config.sanitizeIdSegment)(name) : UNNAMED;
+  return RESERVED_KEYS.includes(key) ? `${key}_alert` : key;
 }
 function groupBy(items, key) {
   return items.reduce((groups, item) => {
@@ -38,23 +40,23 @@ function joinSeverities(severities) {
   return [...new Set(severities.filter((severity) => severity !== ""))].sort().join(", ");
 }
 function toGroup(key, alerts, rules, suppressed) {
-  var _a, _b, _c;
+  var _a, _b;
   const { entries, count } = (0, import_alertmanager_summary.summarizeAlerts)(alerts);
   const newest = entries.at(0);
-  const muted = (_a = suppressed.at(0)) == null ? void 0 : _a.labels;
+  const shown = newest != null ? newest : (0, import_alertmanager_summary.summarizeAlerts)(suppressed).entries.at(0);
   const severities = rules.length > 0 ? rules.map((rule) => rule.severity) : suppressed.map((s) => {
     var _a2;
     return (_a2 = s.labels.severity) != null ? _a2 : "";
   });
   return {
     key,
-    name: (newest == null ? void 0 : newest.alertname) || ((_b = rules.at(0)) == null ? void 0 : _b.name) || (muted == null ? void 0 : muted.alertname) || UNNAMED,
+    name: (shown == null ? void 0 : shown.alertname) || ((_a = rules.at(0)) == null ? void 0 : _a.name) || UNNAMED,
     active: count > 0,
     silenced: suppressed.length > 0,
     count,
     severity: joinSeverities(newest ? entries.map((entry) => entry.severity) : severities),
-    summary: (_c = newest == null ? void 0 : newest.summary) != null ? _c : "",
-    startsAt: newest ? Date.parse(newest.startsAt) || null : null,
+    summary: (_b = shown == null ? void 0 : shown.summary) != null ? _b : "",
+    startsAt: shown ? Date.parse(shown.startsAt) || null : null,
     entries
   };
 }

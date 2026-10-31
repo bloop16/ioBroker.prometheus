@@ -1,5 +1,5 @@
 /**
- * Groups alerts by name for the per-alert folders below alerts.byName.
+ * Groups alerts by name for the per-alert folders below alerts.
  *
  * One rule usually fires once per instance, so a name is the stable unit a
  * dashboard can bind to, unlike fingerprints that come and go with each alert.
@@ -12,6 +12,8 @@ import { sanitizeIdSegment } from "./source-config";
 
 /** Folder name for alerts without an alertname label */
 const UNNAMED = "unnamed";
+/** Summary states next to the alert folders, which an alert must not replace */
+const RESERVED_KEYS = ["count", "json"];
 
 /** The values of one alert folder */
 export interface AlertGroup {
@@ -27,16 +29,17 @@ export interface AlertGroup {
     count: number;
     /** Severities of the firing instances, or of the rules when inactive */
     severity: string;
-    /** Summary of the newest firing instance */
+    /** Summary of the newest firing instance, preferring unsilenced ones */
     summary: string;
-    /** Start of the newest firing instance in milliseconds, null when inactive */
+    /** Start of that instance in milliseconds, null when nothing fires */
     startsAt: number | null;
     /** The firing instances, newest first */
     entries: AlertJsonEntry[];
 }
 
 function keyOf(name: string | undefined): string {
-    return name ? sanitizeIdSegment(name) : UNNAMED;
+    const key = name ? sanitizeIdSegment(name) : UNNAMED;
+    return RESERVED_KEYS.includes(key) ? `${key}_alert` : key;
 }
 
 function groupBy<T>(items: T[], key: (item: T) => string): Map<string, T[]> {
@@ -53,18 +56,18 @@ function joinSeverities(severities: string[]): string {
 function toGroup(key: string, alerts: AlertEntry[], rules: AlertRule[], suppressed: AlertEntry[]): AlertGroup {
     const { entries, count } = summarizeAlerts(alerts);
     const newest = entries.at(0);
-    const muted = suppressed.at(0)?.labels;
+    const shown = newest ?? summarizeAlerts(suppressed).entries.at(0);
     const severities =
         rules.length > 0 ? rules.map(rule => rule.severity) : suppressed.map(s => s.labels.severity ?? "");
     return {
         key,
-        name: newest?.alertname || rules.at(0)?.name || muted?.alertname || UNNAMED,
+        name: shown?.alertname || rules.at(0)?.name || UNNAMED,
         active: count > 0,
         silenced: suppressed.length > 0,
         count,
         severity: joinSeverities(newest ? entries.map(entry => entry.severity) : severities),
-        summary: newest?.summary ?? "",
-        startsAt: newest ? Date.parse(newest.startsAt) || null : null,
+        summary: shown?.summary ?? "",
+        startsAt: shown ? Date.parse(shown.startsAt) || null : null,
         entries,
     };
 }

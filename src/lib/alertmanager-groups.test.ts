@@ -83,6 +83,19 @@ describe("alertmanager-groups => groupAlerts", () => {
         expect(group.active).to.equal(false);
         expect(group.count).to.equal(0);
         expect(group.entries).to.deep.equal([]);
+        expect(group.summary).to.equal("x");
+        expect(group.startsAt).to.equal(Date.parse("2026-10-01T10:00:00Z"));
+    });
+
+    it("prefers the unsilenced instance for summary and start", () => {
+        const [group] = groupAlerts(
+            [alert("Down", "critical", "2026-10-01T10:00:00Z", "active", "a")],
+            [],
+            [alert("Down", "critical", "2026-10-02T10:00:00Z", "muted", "b")],
+        );
+
+        expect(group.summary).to.equal("active");
+        expect(group.startsAt).to.equal(Date.parse("2026-10-01T10:00:00Z"));
     });
 
     it("creates a group for a silenced alert without a rule", () => {
@@ -111,6 +124,19 @@ describe("alertmanager-groups => groupAlerts", () => {
 
         expect(group.key).to.equal("Disk_Full_1");
         expect(group.name).to.equal("Disk.Full 1");
+    });
+
+    it("keeps alerts away from the names of the summary states", () => {
+        const groups = groupAlerts(
+            [],
+            [
+                { name: "count", severity: "" },
+                { name: "json", severity: "" },
+            ],
+        );
+
+        expect(groups.map(group => group.key)).to.deep.equal(["count_alert", "json_alert"]);
+        expect(groups[0].name).to.equal("count");
     });
 
     it("collects alerts without a name in one group", () => {
