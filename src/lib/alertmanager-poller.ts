@@ -5,12 +5,17 @@
 
 import { AlertmanagerClient, type AlertEntry, type SilenceEntry } from "./alertmanager-client";
 import { normalizeAlertmanagerConfig, type NormalizedAlertmanagerConfig } from "./alertmanager-config";
+import { groupAlerts, type AlertGroup } from "./alertmanager-groups";
 import { summarizeAlerts, summarizeSilences } from "./alertmanager-summary";
+import { PrometheusClient, type AlertRule } from "./prometheus-client";
+import { validateUrl } from "./source-config";
 
 /** Root of the object tree; everything below it can be removed at once */
 export const ALERTMANAGER_CHANNEL = "alertmanager";
 
 const SEVERITY_FOLDER = `${ALERTMANAGER_CHANNEL}.alerts.countBySeverity`;
+/** Separate from alerts so an alert called "count" cannot collide with the summary states */
+const ALERT_FOLDER = `${ALERTMANAGER_CHANNEL}.alerts.byName`;
 
 /** Adapter functions used by the poller */
 export type PollerHost = Pick<
@@ -33,12 +38,19 @@ export interface AlertmanagerSource {
     activeSilences(): Promise<SilenceEntry[]>;
 }
 
+/** Source of the alert rules; lets alerts exist as folders before they ever fire */
+export interface AlertRuleSource {
+    /** Returns the known alert rules */
+    alertRules(): Promise<AlertRule[]>;
+}
+
 type StateSpec = Pick<ioBroker.StateCommon, "name" | "type" | "role">;
 
 const CONTAINERS: Array<{ id: string; type: "channel" | "folder"; name: string }> = [
     { id: ALERTMANAGER_CHANNEL, type: "channel", name: "Alertmanager" },
     { id: `${ALERTMANAGER_CHANNEL}.alerts`, type: "channel", name: "Active alerts" },
     { id: SEVERITY_FOLDER, type: "folder", name: "Active alerts by severity" },
+    { id: ALERT_FOLDER, type: "folder", name: "Alerts by name" },
     { id: `${ALERTMANAGER_CHANNEL}.silences`, type: "channel", name: "Active silences" },
 ];
 
@@ -49,6 +61,15 @@ const STATES: Record<string, StateSpec> = {
     "alerts.json": { name: "Active alerts as JSON", type: "string", role: "json" },
     "silences.count": { name: "Active silences", type: "number", role: "value" },
     "silences.json": { name: "Active silences as JSON", type: "string", role: "json" },
+};
+
+const ALERT_STATES: Record<string, StateSpec> = {
+    active: { name: "Alert is firing", type: "boolean", role: "indicator.alarm" },
+    count: { name: "Firing instances", type: "number", role: "value" },
+    severity: { name: "Severity", type: "string", role: "text" },
+    summary: { name: "Summary of the newest instance", type: "string", role: "text" },
+    startsAt: { name: "Start of the newest instance", type: "number", role: "date" },
+    json: { name: "Firing instances as JSON", type: "string", role: "json" },
 };
 
 /** Marks a failure of the server, as opposed to one writing to ioBroker */
@@ -66,24 +87,29 @@ export class AlertmanagerPoller {
     private stopped = false;
     /** Severities with a state, so they can be reset once their alerts resolve */
     private knownSeverities = new Set<string>();
+    /** Alerts with a folder, so they can be reset once they resolve */
+    private knownAlerts = new Set<string>();
 
     /**
      * @param host - The adapter instance
      * @param source - Data source, usually an AlertmanagerClient
      * @param config - The validated settings
      * @param onHealth - Called with the reachability after each poll
+     * @param rules - Optional source of the alert rules
      */
     public constructor(
         private readonly host: PollerHost,
         private readonly source: AlertmanagerSource,
         private readonly config: NormalizedAlertmanagerConfig,
         private readonly onHealth: (healthy: boolean) => void,
+        private readonly rules?: AlertRuleSource,
     ) {}
 
     /** Creates the objects, polls once and starts the timer */
     public async start(): Promise<void> {
         await this.ensureObjects();
-        this.knownSeverities = await this.loadSeverities();
+        this.knownSeverities = await this.loadKeys(SEVERITY_FOLDER, "state");
+        this.knownAlerts = await this.loadKeys(ALERT_FOLDER, "channel");
         this.interval = this.host.setInterval(() => this.trigger(), this.config.pollIntervalMs) ?? undefined;
         this.trigger();
     }
@@ -164,6 +190,54 @@ export class AlertmanagerPoller {
         await this.write("alerts.json", JSON.stringify(alertSummary.entries));
         await this.write("silences.count", silenceSummary.count);
         await this.write("silences.json", JSON.stringify(silenceSummary.entries));
+        await this.writeGroups(groupAlerts(alerts, await this.fetchRules()));
+    }
+
+    /** Rules only add folders, so a failure must not affect the alerts */
+    private async fetchRules(): Promise<AlertRule[]> {
+        try {
+            return (await this.rules?.alertRules()) ?? [];
+        } catch (error) {
+            this.host.log.debug(`Cannot read the alert rules: ${errorText(error)}`);
+            return [];
+        }
+    }
+
+    private async writeGroups(groups: AlertGroup[]): Promise<void> {
+        for (const group of groups) {
+            await this.ensureAlertFolder(group);
+            await this.writeAlert(group.key, {
+                active: group.active,
+                count: group.count,
+                severity: group.severity,
+                summary: group.summary,
+                startsAt: group.startsAt,
+                json: JSON.stringify(group.entries),
+            });
+        }
+        const current = new Set(groups.map(group => group.key));
+        for (const key of [...this.knownAlerts].filter(known => !current.has(known))) {
+            // the severity stays, as it still describes the alert
+            await this.writeAlert(key, { active: false, count: 0, summary: "", startsAt: null, json: "[]" });
+        }
+    }
+
+    private async writeAlert(key: string, values: Record<string, ioBroker.StateValue>): Promise<void> {
+        for (const [state, value] of Object.entries(values)) {
+            await this.host.setStateChangedAsync(`${ALERT_FOLDER}.${key}.${state}`, value, true);
+        }
+    }
+
+    private async ensureAlertFolder(group: AlertGroup): Promise<void> {
+        if (this.knownAlerts.has(group.key)) {
+            return;
+        }
+        const id = `${ALERT_FOLDER}.${group.key}`;
+        await this.host.setObjectNotExistsAsync(id, { type: "channel", common: { name: group.name }, native: {} });
+        for (const [state, spec] of Object.entries(ALERT_STATES)) {
+            await this.ensureState(`${id}.${state}`, spec);
+        }
+        this.knownAlerts = new Set([...this.knownAlerts, group.key]);
     }
 
     private async writeSeverities(bySeverity: Record<string, number>): Promise<void> {
@@ -203,9 +277,9 @@ export class AlertmanagerPoller {
         });
     }
 
-    private async loadSeverities(): Promise<Set<string>> {
-        const prefix = `${this.host.namespace}.${SEVERITY_FOLDER}.`;
-        const objects = await this.host.getForeignObjectsAsync(`${prefix}*`, "state");
+    private async loadKeys(folder: string, type: "state" | "channel"): Promise<Set<string>> {
+        const prefix = `${this.host.namespace}.${folder}.`;
+        const objects = await this.host.getForeignObjectsAsync(`${prefix}*`, type);
         return new Set(Object.keys(objects).map(id => id.slice(prefix.length)));
     }
 }
@@ -243,7 +317,18 @@ export async function startAlertmanagerPoller(
         username: settings.alertmanagerUsername || undefined,
         password: settings.alertmanagerPassword || undefined,
     });
-    const poller = new AlertmanagerPoller(host, client, config, onHealth);
+    const prometheusUrl = validateUrl(settings.url);
+    // with filters the rules would add folders for alerts that can never show up
+    const rules =
+        prometheusUrl && config.matchers.length === 0
+            ? new PrometheusClient({
+                  baseUrl: prometheusUrl,
+                  timeoutMs,
+                  username: settings.username || undefined,
+                  password: settings.password || undefined,
+              })
+            : undefined;
+    const poller = new AlertmanagerPoller(host, client, config, onHealth, rules);
     await poller.start();
     // only the origin: the URL may carry credentials
     host.log.info(`Polling Alertmanager every ${config.pollIntervalMs / 1000}s: ${new URL(config.url).origin}`);

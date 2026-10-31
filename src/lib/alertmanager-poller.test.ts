@@ -6,7 +6,12 @@ import { AlertmanagerPoller, type PollerHost } from "./alertmanager-poller";
 const CONFIG = { url: "http://am:9093", pollIntervalMs: 60_000, matchers: ['severity="critical"'] };
 
 function alert(fingerprint: string, severity: string): AlertEntry {
-    return { fingerprint, labels: { severity }, annotations: {}, startsAt: "2026-10-01T10:00:00Z" };
+    return {
+        fingerprint,
+        labels: { alertname: "Disk", severity },
+        annotations: {},
+        startsAt: "2026-10-01T10:00:00Z",
+    };
 }
 
 interface Harness {
@@ -19,7 +24,11 @@ interface Harness {
     tick: () => Promise<void>;
 }
 
-function harness(existingSeverities: string[] = []): Harness {
+function harness(
+    existingSeverities: string[] = [],
+    existingAlerts: string[] = [],
+    rules?: { alertRules: sinon.SinonStub },
+): Harness {
     const states = new Map<string, unknown>();
     const objects = new Map<string, ioBroker.SettableObject>();
     let intervalCallback: () => void = () => undefined;
@@ -35,10 +44,13 @@ function harness(existingSeverities: string[] = []): Harness {
             objects.set(id, obj);
             return Promise.resolve();
         },
-        getForeignObjectsAsync: () =>
+        getForeignObjectsAsync: (pattern: string) =>
             Promise.resolve(
                 Object.fromEntries(
-                    existingSeverities.map(key => [`prometheus.0.alertmanager.alerts.countBySeverity.${key}`, {}]),
+                    (pattern.includes("byName") ? existingAlerts : existingSeverities).map(key => [
+                        `${pattern.slice(0, -1)}${key}`,
+                        {},
+                    ]),
                 ),
             ),
         setStateAsync: write,
@@ -55,7 +67,7 @@ function harness(existingSeverities: string[] = []): Harness {
         activeSilences: sinon.stub().resolves([] as SilenceEntry[]),
     };
     const health = sinon.stub();
-    const poller = new AlertmanagerPoller(host, source, CONFIG, health);
+    const poller = new AlertmanagerPoller(host, source, CONFIG, health, rules);
     const tick = async (): Promise<void> => {
         intervalCallback();
         await poller.idle();
@@ -95,6 +107,71 @@ describe("alertmanager-poller", () => {
 
         expect(states.get("alertmanager.alerts.countBySeverity.critical")).to.equal(0);
         expect(states.get("alertmanager.alerts.count")).to.equal(0);
+    });
+
+    it("creates one folder per alert like the metrics", async () => {
+        const { poller, states, objects, source } = harness();
+        source.activeAlerts.resolves([alert("a", "critical")]);
+
+        await poller.start();
+        await poller.idle();
+
+        const root = "alertmanager.alerts.byName.Disk";
+        expect(objects.get(root)?.type).to.equal("channel");
+        expect(objects.get(`${root}.active`)?.common?.role).to.equal("indicator.alarm");
+        expect(states.get(`${root}.active`)).to.equal(true);
+        expect(states.get(`${root}.count`)).to.equal(1);
+        expect(states.get(`${root}.severity`)).to.equal("critical");
+        expect(JSON.parse(states.get(`${root}.json`) as string)).to.have.length(1);
+    });
+
+    it("keeps the folder of a resolved alert and marks it inactive", async () => {
+        const { poller, states, source, tick } = harness();
+        source.activeAlerts.resolves([alert("a", "critical")]);
+        await poller.start();
+        await poller.idle();
+
+        source.activeAlerts.resolves([]);
+        await tick();
+
+        const root = "alertmanager.alerts.byName.Disk";
+        expect(states.get(`${root}.active`)).to.equal(false);
+        expect(states.get(`${root}.count`)).to.equal(0);
+        expect(states.get(`${root}.startsAt`)).to.equal(null);
+        expect(states.get(`${root}.severity`)).to.equal("critical");
+    });
+
+    it("marks alerts left over from a previous run as inactive", async () => {
+        const { poller, states } = harness([], ["Old"]);
+
+        await poller.start();
+        await poller.idle();
+
+        expect(states.get("alertmanager.alerts.byName.Old.active")).to.equal(false);
+    });
+
+    it("creates folders for rules that never fired", async () => {
+        const rules = { alertRules: sinon.stub().resolves([{ name: "AdGuardDown", severity: "critical" }]) };
+        const { poller, states } = harness([], [], rules);
+
+        await poller.start();
+        await poller.idle();
+
+        expect(states.get("alertmanager.alerts.byName.AdGuardDown.active")).to.equal(false);
+        expect(states.get("alertmanager.alerts.byName.AdGuardDown.severity")).to.equal("critical");
+    });
+
+    it("does not fail when the rules cannot be read", async () => {
+        const rules = { alertRules: sinon.stub().rejects(new Error("prometheus down")) };
+        const { poller, states, source, health } = harness([], [], rules);
+        source.activeAlerts.resolves([alert("a", "critical")]);
+
+        await poller.start();
+        await poller.idle();
+
+        expect(states.get("alertmanager.alerts.count")).to.equal(1);
+        expect(states.get("alertmanager.alerts.byName.Disk.active")).to.equal(true);
+        expect(health.lastCall.args).to.deep.equal([true]);
     });
 
     it("resets severities left over from a previous run", async () => {

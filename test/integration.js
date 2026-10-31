@@ -160,6 +160,8 @@ tests.integration(path.join(__dirname, ".."), {
                 expect((await harness.states.getStateAsync(`${ns}.alerts.count`)).val).to.equal(1);
                 expect((await harness.states.getStateAsync(`${ns}.silences.count`)).val).to.equal(1);
                 expect((await harness.states.getStateAsync(`${ns}.alerts.countBySeverity.critical`)).val).to.equal(1);
+                const folder = await harness.objects.getObjectAsync(`${ns}.alerts.byName.DiskFull`);
+                expect(folder.type).to.equal("channel");
                 expect(await harness.objects.getObjectAsync(`${ns}.info.connection`)).to.equal(null);
                 expect(JSON.parse((await harness.states.getStateAsync(`${ns}.alerts.json`)).val)[0].alertname).to.equal(
                     "DiskFull",
