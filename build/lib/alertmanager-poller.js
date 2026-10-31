@@ -30,13 +30,11 @@ const ALERTMANAGER_CHANNEL = "alertmanager";
 const SEVERITY_FOLDER = `${ALERTMANAGER_CHANNEL}.alerts.countBySeverity`;
 const CONTAINERS = [
   { id: ALERTMANAGER_CHANNEL, type: "channel", name: "Alertmanager" },
-  { id: `${ALERTMANAGER_CHANNEL}.info`, type: "channel", name: "Information" },
   { id: `${ALERTMANAGER_CHANNEL}.alerts`, type: "channel", name: "Active alerts" },
   { id: SEVERITY_FOLDER, type: "folder", name: "Active alerts by severity" },
   { id: `${ALERTMANAGER_CHANNEL}.silences`, type: "channel", name: "Active silences" }
 ];
 const STATES = {
-  "info.connection": { name: "Alertmanager reachable", type: "boolean", role: "indicator.reachable" },
   error: { name: "Last error (empty if ok)", type: "string", role: "text" },
   lastUpdate: { name: "Last successful update", type: "number", role: "date" },
   "alerts.count": { name: "Active alerts (not silenced)", type: "number", role: "value" },
@@ -132,7 +130,6 @@ class AlertmanagerPoller {
       return;
     }
     this.onHealth(healthy);
-    await this.write("info.connection", healthy);
     await this.write("error", error);
   }
   async writeSummary(alerts, silences) {

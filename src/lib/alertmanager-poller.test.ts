@@ -78,7 +78,7 @@ describe("alertmanager-poller", () => {
         expect(states.get("alertmanager.alerts.countBySeverity.critical")).to.equal(1);
         expect(states.get("alertmanager.silences.count")).to.equal(0);
         expect(JSON.parse(states.get("alertmanager.alerts.json") as string)).to.have.length(2);
-        expect(states.get("alertmanager.info.connection")).to.equal(true);
+        expect(objects.has("alertmanager.info.connection")).to.equal(false);
         expect(states.get("alertmanager.error")).to.equal("");
         expect(states.get("alertmanager.lastUpdate")).to.be.a("number");
         expect(health.lastCall.args).to.deep.equal([true]);
@@ -116,7 +116,6 @@ describe("alertmanager-poller", () => {
         await tick();
 
         expect(states.get("alertmanager.alerts.count")).to.equal(1);
-        expect(states.get("alertmanager.info.connection")).to.equal(false);
         expect(states.get("alertmanager.error")).to.contain("ECONNREFUSED");
         expect(health.lastCall.args).to.deep.equal([false]);
     });
@@ -131,7 +130,6 @@ describe("alertmanager-poller", () => {
         await poller.idle();
 
         expect(health.lastCall.args).to.deep.equal([true]);
-        expect(states.get("alertmanager.info.connection")).to.equal(true);
         expect(states.get("alertmanager.error")).to.contain("db down");
     });
 

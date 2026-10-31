@@ -106,7 +106,6 @@ The adapter creates these read-only states below `alertmanager`:
 
 | State | Description |
 |-------|-------------|
-| `info.connection` | `true` while the Alertmanager is reachable |
 | `alerts.count` | Active alerts, without silenced and inhibited ones |
 | `alerts.countBySeverity.<severity>` | Active alerts per `severity` label (`none` if an alert has no such label); `0` once the last alert of a severity is resolved |
 | `alerts.json` | JSON array with `alertname`, `severity`, `instance`, `summary`, `startsAt`, `fingerprint`; newest first |
@@ -115,8 +114,9 @@ The adapter creates these read-only states below `alertmanager`:
 | `lastUpdate` | Timestamp of the last successful update |
 | `error` | Last error message; empty while everything is ok |
 
-If the Alertmanager is unreachable the last values are kept, so always check
-`alertmanager.info.connection` before relying on `alerts.count = 0`. The JSON states hold at most
+If the Alertmanager is unreachable the last values are kept, `info.connection` of the instance
+turns `false` and `alertmanager.error` shows the reason, so check these before relying on
+`alerts.count = 0`. The JSON states hold at most
 500 entries; the counts stay exact. Disabling the feature removes the `alertmanager` states.
 
 ## Created states
