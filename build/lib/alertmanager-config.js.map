@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["../../src/lib/alertmanager-config.ts"],
+  "sourcesContent": ["/**\n * Normalizes and validates the Alertmanager settings from the Admin UI.\n */\n\nimport { clampPollIntervalMs, validateUrl } from \"./source-config\";\n\n/** The Alertmanager settings as stored in the adapter configuration */\nexport interface RawAlertmanagerConfig {\n    /** Base URL as entered */\n    url?: string;\n    /** Poll interval in seconds */\n    pollInterval?: unknown;\n}\n\n/** Validated Alertmanager settings */\nexport interface NormalizedAlertmanagerConfig {\n    /** Validated base URL */\n    url: string;\n    /** Poll interval in milliseconds */\n    pollIntervalMs: number;\n}\n\n/**\n * Validates the Alertmanager settings\n *\n * @param raw - The settings from the adapter configuration\n * @returns The validated settings, or undefined if they are unusable\n */\nexport function normalizeAlertmanagerConfig(raw: RawAlertmanagerConfig): NormalizedAlertmanagerConfig | undefined {\n    const url = validateUrl(raw.url?.trim());\n    return url ? { url, pollIntervalMs: clampPollIntervalMs(raw.pollInterval) } : undefined;\n}\n"],
+  "mappings": ";;;;;;;;;;;;;;;;;;AAAA;AAAA;AAAA;AAAA;AAAA;AAIA,2BAAiD;AAwB1C,SAAS,4BAA4B,KAAsE;AA5BlH;AA6BI,QAAM,UAAM,mCAAY,SAAI,QAAJ,mBAAS,MAAM;AACvC,SAAO,MAAM,EAAE,KAAK,oBAAgB,0CAAoB,IAAI,YAAY,EAAE,IAAI;AAClF;",
+  "names": []
+}

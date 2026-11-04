@@ -43,6 +43,8 @@ community project and is not affiliated with or endorsed by the Prometheus proje
   influxdb/history adapters
 * Scrape statistics: `info.lastScrape`, `info.scrapeCount` and `info.scrapeInterval` show how
   often Prometheus actually scrapes the endpoint
+* **Alertmanager** (separately activatable): active alerts and silences as read-only states,
+  e.g. for VIS dashboards, notifications or scripts
 * Compact mode supported
 
 ## Configuration
@@ -86,6 +88,49 @@ The endpoint also serves the self-metrics `iobroker_exporter_scrapes_total` and
 states `info.lastScrape`, `info.scrapeCount` and `info.scrapeInterval` so you can verify the
 actual scrape frequency directly in ioBroker.
 
+## Alertmanager
+
+The adapter can read the currently active alerts and silences from a Prometheus
+[Alertmanager](https://prometheus.io/docs/alerting/latest/alertmanager/). This is read-only:
+alert rules and silences stay in your Prometheus and Alertmanager configuration.
+
+1. Enable **Read alerts from Alertmanager** in the instance settings.
+2. Enter the base URL (e.g. `http://192.168.1.10:9093`; Alertmanager's default port is `9093`,
+   not the `9090` of Prometheus) and use **Test connection**. Username and password are separate
+   from the Prometheus credentials, because Alertmanager is a server of its own.
+
+The adapter creates these read-only states below `alertmanager`:
+
+| State | Description |
+|-------|-------------|
+| `alerts.count` | Active alerts, without silenced and inhibited ones |
+| `alerts.json` | JSON array with `alertname`, `severity`, `instance`, `summary`, `startsAt`, `fingerprint`; newest first |
+| `alerts.<alertname>` | One folder per alert, see below |
+| `silences.count` | Active silences |
+| `silences.json` | JSON array with `id`, `matchers`, `createdBy`, `comment`, `startsAt`, `endsAt`; ending soonest first |
+| `lastUpdate` | Timestamp of the last successful update |
+| `error` | Last error message; empty while everything is ok |
+
+Every alert gets its own folder below `alerts`, named after its `alertname` (alerts called `count`
+or `json` get the suffix `_alert`). If the
+Prometheus server is configured too, its alert rules are read automatically, so all alerts exist
+before they ever fire and can be bound to a dashboard right away.
+
+| State | Description |
+|-------|-------------|
+| `active` | `true` while the alert is firing (not silenced or inhibited) |
+| `silenced` | `true` while at least one instance fires but is silenced or inhibited; it does not count as `active` |
+| `count` | Number of firing instances that are not silenced or inhibited; one rule usually fires once per instance |
+| `severity` | Severity of the firing instances, otherwise that of the rule |
+| `summary` | Summary of the newest firing instance; silenced ones are only used if nothing else fires |
+| `startsAt` | Start of that instance; empty while the alert does not fire |
+| `json` | All firing instances that are not silenced or inhibited, as in `alerts.json` |
+
+If the Alertmanager is unreachable the last values are kept, `info.connection` of the instance
+turns `false` and `alertmanager.error` shows the reason, so check these before relying on
+`alerts.count = 0`. The JSON states hold at most
+500 entries; the counts stay exact. Disabling the feature removes the `alertmanager` states.
+
 ## Created states
 
 For each source the adapter creates the following states below `metrics.<target path>`
@@ -99,14 +144,16 @@ For each source the adapter creates the following states below `metrics.<target 
 | `lastUpdate` | Timestamp of the last successful update |
 | `error` | Last error message; empty while everything is ok |
 
-`info.connection` is `true` while all enabled sources are reachable (a query returning no
-data does not count as a connection problem). With the exporter enabled, `info.lastScrape`,
+`info.connection` is `true` while all enabled sources and, if enabled, the Alertmanager are
+reachable (a query returning no data does not count as a connection problem). With the exporter enabled, `info.lastScrape`,
 `info.scrapeCount` and `info.scrapeInterval` reflect the scrapes by your Prometheus server.
 
 ## Known limitations
 
 * States created for group-by label values that no longer exist are not deleted automatically.
 * All sources query the single configured Prometheus server.
+* Folders below `alertmanager.alerts` of deleted alert rules stay until the Alertmanager feature
+  is disabled.
 
 ## Changelog
 <!--
@@ -115,6 +162,7 @@ data does not count as a connection problem). With the exporter enabled, `info.l
 -->
 ### **WORK IN PROGRESS**
 - (bloop16) Object settings: removed the duplicate export checkbox, the built-in "Enabled" checkbox now controls the export alone
+- (bloop16) Alertmanager as additional source: active alerts and silences as states, with one folder per alert
 
 ### 1.0.1 (2026-10-18)
 - (ioBroker-Bot) Adapter requires admin >= 7.8.23 now.

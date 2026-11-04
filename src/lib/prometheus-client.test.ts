@@ -128,3 +128,37 @@ describe("prometheus-client => auth", () => {
         expect(get.firstCall.args[1].auth).to.equal(undefined);
     });
 });
+
+describe("prometheus-client => alertRules", () => {
+    it("returns the alerting rules of all groups and skips recording rules", async () => {
+        const { client, get } = clientWithResponse({
+            status: "success",
+            data: {
+                groups: [
+                    {
+                        rules: [
+                            { type: "alerting", name: "Down", labels: { severity: "critical" } },
+                            { type: "recording", name: "job:up" },
+                        ],
+                    },
+                    { rules: [{ type: "alerting", name: "NoSeverity" }, null] },
+                ],
+            },
+        });
+
+        expect(await client.alertRules()).to.deep.equal([
+            { name: "Down", severity: "critical" },
+            { name: "NoSeverity", severity: "" },
+        ]);
+        expect(get.firstCall.args[0]).to.equal("http://prom:9090/api/v1/rules");
+        expect(get.firstCall.args[1].params).to.deep.equal({ type: "alert" });
+    });
+
+    it("rejects an unexpected response", async () => {
+        const { client } = clientWithResponse({ status: "success", data: {} });
+
+        let error: Error | undefined;
+        await client.alertRules().catch((e: Error) => (error = e));
+        expect(error?.message).to.contain("Unexpected response");
+    });
+});

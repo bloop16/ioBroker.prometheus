@@ -1,8 +1,11 @@
 {
     "0.0.0.0 = all interfaces": "0.0.0.0 = toutes les interfaces",
     "Aggregation": "Agrégation",
+    "Alertmanager": "Alertmanager",
+    "Alertmanager URL": "URL du Alertmanager",
     "Allowed characters: letters, digits, underscore, colon. Empty = iobroker_state with the state id as label": "Caractères autorisés : lettres, chiffres, trait de soulignement, deux-points. Vide = iobroker_state avec l'identifiant de l'état comme étiquette",
     "Average": "Moyenne",
+    "Base URL of the Alertmanager, e.g. http://192.168.1.10:9093": "URL de base d'Alertmanager, par ex. http://192.168.1.10:9093",
     "Base URL of the Prometheus server, e.g. http://192.168.1.10:9090": "URL de base du serveur Prometheus, par ex. http://192.168.1.10:9090",
     "Bind address": "Lier l'adresse",
     "Configure your Prometheus server once, then add any number of queries. Metrics, labels and values are loaded live from the server - no PromQL knowledge required. Save the configuration after changing the server settings so the live dropdowns use them.": "Configurez votre serveur Prometheus une fois, puis ajoutez un nombre illimité de requêtes. Les métriques, les étiquettes et les valeurs sont chargées en direct depuis le serveur – aucune connaissance PromQL n'est requise. Enregistrez la configuration après avoir modifié les paramètres du serveur afin que les listes déroulantes en direct les utilisent.",
@@ -39,6 +42,8 @@
     "Prometheus URL": "URL de Prométhée",
     "Prometheus label to filter on": "Étiquette Prometheus sur laquelle filtrer",
     "Prometheus server": "Serveur Prometheus",
+    "Read alerts from Alertmanager": "Lire les alertes d'Alertmanager",
+    "Reads active alerts and silences from a Prometheus Alertmanager into states below alertmanager. Silenced and inhibited alerts are not counted. Rules and silences stay in Alertmanager; this is read-only.": "Lit les alertes actives et les silences d'un Prometheus Alertmanager dans les états situés sous alertmanager. Les alertes silencieuses et inhibées ne sont pas comptées. Les règles et les silences restent dans Alertmanager ; c'est en lecture seule.",
     "Request timeout (s)": "Délai d'expiration (s) de la demande",
     "Sources": "Sources",
     "States are written below metrics.<path>, e.g. servers.nas. Empty = derived from name": "Les états sont écrits sous metrics.<path>, par ex. serveurs.nas. Vide = dérivé du nom",
@@ -47,5 +52,6 @@
     "Test connection": "Tester la connexion",
     "This state cannot be exported: Prometheus stores numbers only (numeric and boolean states are supported)": "Cet état ne peut pas être exporté : Prometheus stocke uniquement les nombres (les états numériques et booléens sont pris en charge)",
     "Username (optional)": "Nom d'utilisateur (facultatif)",
-    "Value is exposed on the /metrics endpoint of the adapter (exporter must be enabled in the instance settings)": "La valeur est exposée sur le point de terminaison /metrics de l'adaptateur (l'exportateur doit être activé dans les paramètres de l'instance)"
+    "Value is exposed on the /metrics endpoint of the adapter (exporter must be enabled in the instance settings)": "La valeur est exposée sur le point de terminaison /metrics de l'adaptateur (l'exportateur doit être activé dans les paramètres de l'instance)",
+    "When disabled, the alertmanager states are removed": "Lorsqu'ils sont désactivés, les états d'alertmanager sont supprimés"
 }

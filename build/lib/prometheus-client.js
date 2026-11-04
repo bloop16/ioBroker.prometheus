@@ -39,6 +39,13 @@ function isEnvelope(data) {
 function isVectorEntry(entry) {
   return typeof entry === "object" && entry !== null && Array.isArray(entry.value);
 }
+function toAlertRule(rule) {
+  const { type, name, labels } = rule != null ? rule : {};
+  if (type !== "alerting" || typeof name !== "string") {
+    return void 0;
+  }
+  return { name, severity: typeof (labels == null ? void 0 : labels.severity) === "string" ? labels.severity : "" };
+}
 class PrometheusClient {
   options;
   httpGet;
@@ -95,6 +102,14 @@ class PrometheusClient {
       return Promise.reject(new Error(`Invalid label name: "${label}"`));
     }
     return this.stringList(`/api/v1/label/${encodeURIComponent(label)}/values`, this.matchParams(metric));
+  }
+  /** Returns the alerting rules of all rule groups */
+  async alertRules() {
+    const data = await this.request("/api/v1/rules", { type: "alert" });
+    if (!Array.isArray(data == null ? void 0 : data.groups)) {
+      throw new Error("Unexpected response from /api/v1/rules: expected rule groups");
+    }
+    return data.groups.flatMap((group) => Array.isArray(group == null ? void 0 : group.rules) ? group.rules : []).map(toAlertRule).filter((rule) => rule !== void 0);
   }
   matchParams(metric) {
     if (metric && (0, import_query_builder.isValidMetricName)(metric)) {
