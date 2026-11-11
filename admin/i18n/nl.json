@@ -47,5 +47,9 @@
     "Test connection": "Verbinding testen",
     "This state cannot be exported: Prometheus stores numbers only (numeric and boolean states are supported)": "Deze status kan niet worden geëxporteerd: Prometheus slaat alleen getallen op (numerieke en Booleaanse staten worden ondersteund)",
     "Username (optional)": "Gebruikersnaam (optioneel)",
-    "Value is exposed on the /metrics endpoint of the adapter (exporter must be enabled in the instance settings)": "Waarde wordt weergegeven op het /metrics-eindpunt van de adapter (de exporter moet zijn ingeschakeld in de exemplaarinstellingen)"
+    "Value is exposed on the /metrics endpoint of the adapter (exporter must be enabled in the instance settings)": "Waarde wordt weergegeven op het /metrics-eindpunt van de adapter (de exporter moet zijn ingeschakeld in de exemplaarinstellingen)",
+    "Custom CA certificate (PEM, optional)": "Eigen CA-certificaat (PEM, optioneel)",
+    "Only needed for HTTPS servers signed by an internal CA. Paste the CA certificate(s) including the BEGIN/END lines; they are trusted in addition to the default root certificates.": "Alleen nodig voor HTTPS-servers die door een interne CA zijn ondertekend. Plak de CA-certificaten inclusief de BEGIN/END-regels; ze worden vertrouwd naast de standaard rootcertificaten.",
+    "Do not verify the TLS certificate (insecure)": "TLS-certificaat niet controleren (onveilig)",
+    "Accepts any server certificate. Use only for testing - prefer the CA certificate field.": "Accepteert elk servercertificaat. Alleen gebruiken om te testen - gebruik bij voorkeur het CA-certificaatveld."
 }
