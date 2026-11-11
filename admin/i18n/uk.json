@@ -1,8 +1,11 @@
 {
     "0.0.0.0 = all interfaces": "0.0.0.0 = усі інтерфейси",
     "Aggregation": "Агрегація",
+    "Alertmanager": "Alertmanager",
+    "Alertmanager URL": "URL-адреса Alertmanager",
     "Allowed characters: letters, digits, underscore, colon. Empty = iobroker_state with the state id as label": "Дозволені символи: літери, цифри, підкреслення, двокрапка. Empty = iobroker_state з ідентифікатором стану як мітка",
     "Average": "Середній",
+    "Base URL of the Alertmanager, e.g. http://192.168.1.10:9093": "Базова URL-адреса Alertmanager, напр. http://192.168.1.10:9093",
     "Base URL of the Prometheus server, e.g. http://192.168.1.10:9090": "Базова URL-адреса сервера Prometheus, напр. http://192.168.1.10:9090",
     "Bind address": "Прив'язати адресу",
     "Configure your Prometheus server once, then add any number of queries. Metrics, labels and values are loaded live from the server - no PromQL knowledge required. Save the configuration after changing the server settings so the live dropdowns use them.": "Налаштуйте свій сервер Prometheus один раз, а потім додайте будь-яку кількість запитів. Показники, мітки та значення завантажуються в реальному часі з сервера – знання PromQL не потрібні. Збережіть конфігурацію після зміни налаштувань сервера, щоб використовувати їх у розкривних меню.",
@@ -39,6 +42,8 @@
     "Prometheus URL": "URL-адреса Prometheus",
     "Prometheus label to filter on": "Мітка Prometheus для фільтрації",
     "Prometheus server": "Сервер Prometheus",
+    "Read alerts from Alertmanager": "Читайте сповіщення від Alertmanager",
+    "Reads active alerts and silences from a Prometheus Alertmanager into states below alertmanager. Silenced and inhibited alerts are not counted. Rules and silences stay in Alertmanager; this is read-only.": "Зчитує активні сповіщення та мовчання з Prometheus Alertmanager у стани нижче alertmanager. Вимкнені та заблоковані сповіщення не враховуються. Правила та тиші залишаються в Alertmanager; це лише для читання.",
     "Request timeout (s)": "Час очікування запиту (с)",
     "Sources": "Джерела",
     "States are written below metrics.<path>, e.g. servers.nas. Empty = derived from name": "Стани записуються під метриками.<шлях>, напр. servers.nas. Порожній = походить від імені",
@@ -47,5 +52,6 @@
     "Test connection": "Тестове підключення",
     "This state cannot be exported: Prometheus stores numbers only (numeric and boolean states are supported)": "Цей стан не можна експортувати: Prometheus зберігає лише числа (підтримуються числові та логічні стани)",
     "Username (optional)": "Ім'я користувача (необов'язково)",
-    "Value is exposed on the /metrics endpoint of the adapter (exporter must be enabled in the instance settings)": "Значення відображається в кінцевій точці /metrics адаптера (експортер має бути ввімкнено в налаштуваннях екземпляра)"
+    "Value is exposed on the /metrics endpoint of the adapter (exporter must be enabled in the instance settings)": "Значення відображається в кінцевій точці /metrics адаптера (експортер має бути ввімкнено в налаштуваннях екземпляра)",
+    "When disabled, the alertmanager states are removed": "Якщо вимкнено, стани AlertManager видаляються"
 }
