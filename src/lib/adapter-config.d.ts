@@ -14,6 +14,10 @@ declare global {
             username: string;
             /** Optional basic auth password applied to all sources (encrypted) */
             password: string;
+            /** Optional PEM CA certificate(s) trusted in addition to the default roots */
+            caCert: string;
+            /** Skips TLS certificate verification (insecure) */
+            allowInsecureTls: boolean;
             /** Configured Prometheus sources as entered in the Admin UI */
             sources: RawSourceConfig[];
             /** Whether the /metrics pull exporter is active */

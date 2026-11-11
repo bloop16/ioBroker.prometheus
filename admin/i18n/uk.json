@@ -47,5 +47,9 @@
     "Test connection": "Тестове підключення",
     "This state cannot be exported: Prometheus stores numbers only (numeric and boolean states are supported)": "Цей стан не можна експортувати: Prometheus зберігає лише числа (підтримуються числові та логічні стани)",
     "Username (optional)": "Ім'я користувача (необов'язково)",
-    "Value is exposed on the /metrics endpoint of the adapter (exporter must be enabled in the instance settings)": "Значення відображається в кінцевій точці /metrics адаптера (експортер має бути ввімкнено в налаштуваннях екземпляра)"
+    "Value is exposed on the /metrics endpoint of the adapter (exporter must be enabled in the instance settings)": "Значення відображається в кінцевій точці /metrics адаптера (експортер має бути ввімкнено в налаштуваннях екземпляра)",
+    "Custom CA certificate (PEM, optional)": "Власний сертифікат ЦС (PEM, необов'язково)",
+    "Only needed for HTTPS servers signed by an internal CA. Paste the CA certificate(s) including the BEGIN/END lines; they are trusted in addition to the default root certificates.": "Потрібно лише для HTTPS-серверів, підписаних внутрішнім ЦС. Вставте сертифікат(и) ЦС разом із рядками BEGIN/END; вони вважаються довіреними на додачу до стандартних кореневих сертифікатів.",
+    "Do not verify the TLS certificate (insecure)": "Не перевіряти сертифікат TLS (небезпечно)",
+    "Accepts any server certificate. Use only for testing - prefer the CA certificate field.": "Приймає будь-який сертифікат сервера. Використовуйте лише для тестування - краще вкажіть сертифікат ЦС."
 }

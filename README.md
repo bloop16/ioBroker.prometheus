@@ -56,6 +56,16 @@ community project and is not affiliated with or endorsed by the Prometheus proje
 4. Check the live preview: it shows the generated query and its current result.
 5. Choose a poll interval and (optionally) a target datapoint path, then save.
 
+### HTTPS with an internal CA
+
+If your Prometheus server uses a certificate signed by an internal (private) CA, paste the CA
+certificate in PEM format (including the `-----BEGIN CERTIFICATE-----` / `-----END CERTIFICATE-----`
+lines) into **Custom CA certificate**. Several certificates (e.g. root and intermediate) can be
+pasted one after another. They are trusted in addition to the default root certificates.
+
+**Do not verify the TLS certificate** accepts any server certificate. It is meant for testing
+only, because the connection is then no longer protected against man-in-the-middle attacks.
+
 ## Exporter (ioBroker to Prometheus)
 
 The adapter can also work in the opposite direction: it exposes selected ioBroker states on a
@@ -115,6 +125,11 @@ data does not count as a connection problem). With the exporter enabled, `info.l
 -->
 ### **WORK IN PROGRESS**
 - (bloop16) Object settings: removed the duplicate export checkbox, the built-in "Enabled" checkbox now controls the export alone
+- (bloop16) HTTPS servers signed by an internal CA are supported: a custom CA certificate can be configured, certificate verification can optionally be disabled (#15)
+- (bloop16) Exporter: unacknowledged commands (ack=false) are no longer exported
+- (bloop16) Connection type set to "cloud", as the Prometheus server can be remote
+- (bloop16) Added the missing translations of the "Test connection" result
+- (bloop16) Dependencies have been updated
 
 ### 1.0.1 (2026-10-18)
 - (ioBroker-Bot) Adapter requires admin >= 7.8.23 now.

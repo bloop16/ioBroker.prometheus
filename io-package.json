@@ -80,7 +80,7 @@
     "mode": "daemon",
     "type": "misc-data",
     "compact": true,
-    "connectionType": "local",
+    "connectionType": "cloud",
     "dataSource": "poll",
     "adminUI": {
       "config": "json",
@@ -104,6 +104,8 @@
     "requestTimeout": 10,
     "username": "",
     "password": "",
+    "caCert": "",
+    "allowInsecureTls": false,
     "sources": [],
     "exporterEnabled": false,
     "port": 9126,
