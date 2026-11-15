@@ -37,6 +37,17 @@ export function toMetricValue(value: unknown): number | undefined {
     return undefined;
 }
 
+/**
+ * Decides whether a state update may change the exported value.
+ * Unacknowledged commands (ack=false) are not exported; a deleted state
+ * (null/undefined) is, so its stale value gets removed.
+ *
+ * @param state - The state as delivered by ioBroker
+ */
+export function isExportableUpdate(state: Pick<ioBroker.State, "ack"> | null | undefined): boolean {
+    return !state || state.ack;
+}
+
 /** Holds the current values of all exported states and renders them */
 export class MetricsRegistry {
     private readonly states = new Map<string, ExportedState>();

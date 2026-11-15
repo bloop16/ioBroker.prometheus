@@ -20,6 +20,7 @@ var exporter_exports = {};
 __export(exporter_exports, {
   DEFAULT_METRIC_NAME: () => DEFAULT_METRIC_NAME,
   MetricsRegistry: () => MetricsRegistry,
+  isExportableUpdate: () => isExportableUpdate,
   toMetricValue: () => toMetricValue
 });
 module.exports = __toCommonJS(exporter_exports);
@@ -34,6 +35,9 @@ function toMetricValue(value) {
     return Number.isFinite(parsed) ? parsed : void 0;
   }
   return void 0;
+}
+function isExportableUpdate(state) {
+  return !state || state.ack;
 }
 class MetricsRegistry {
   states = /* @__PURE__ */ new Map();
@@ -104,6 +108,7 @@ class MetricsRegistry {
 0 && (module.exports = {
   DEFAULT_METRIC_NAME,
   MetricsRegistry,
+  isExportableUpdate,
   toMetricValue
 });
 //# sourceMappingURL=exporter.js.map

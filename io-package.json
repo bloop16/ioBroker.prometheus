@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "prometheus",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "news": {
+      "1.0.2": {
+        "en": "Object settings: removed the duplicate export checkbox, the built-in \"Enabled\" checkbox now controls the export alone\nHTTPS servers signed by an internal CA are supported: a custom CA certificate can be configured, certificate verification can optionally be disabled (#15)\nExporter: unacknowledged commands (ack=false) are no longer exported\nConnection type set to \"cloud\", as the Prometheus server can be remote\nAdded the missing translations of the \"Test connection\" result\nDependencies have been updated",
+        "de": "Objekteinstellungen: Doppelter Export entfernt, „Aktiviert“ steuert jetzt nur noch den Export\nHTTPS-Server mit interner CA werden unterstützt: eigenes CA-Zertifikat konfigurierbar, optional deaktivierbar (#15)\nExporteur: Unbestätigte Befehle (ack=false) werden nicht mehr exportiert\nVerbindungstyp auf „Cloud“, da der Prometheus-Server remote sein kann\nFehlende Übersetzungen des Ergebnisses „Test“ hinzugefügt\nAbhängigkeiten wurden aktualisiert",
+        "ru": "Настройки объекта: снят флажок дублирования экспорта, встроенный флажок «Включено» теперь контролирует только экспорт\nПоддерживаются HTTPS-серверы, подписанные внутренним центром сертификации: можно настроить собственный сертификат CA, при желании можно отключить проверку сертификата (#15)\nЭкспортер: неподтвержденные команды (ack=false) больше не экспортируются\nТип подключения установлен на «облако», так как сервер Prometheus может быть удаленным\nДобавлены недостающие переводы результата «Тестовое соединение»\nЗависимости обновлены",
+        "pt": "Configurações do objeto: removeu a opção “Ativado”, agora a opção “Ativado” controla apenas a exportação\nServidores HTTPS assinados por uma CA interna são suportados: um certificado CA personalizado e a verificação pode ser desativada (#15)\nExportador: comandos não confirmados (ack=false) não são mais exportados\nTipo de conexão “nuvem”, pois o servidor Prometheus pode ser remoto\nAdicionou a tradução ausente do resultado “Testar conexão”\nAs dependências foram atualizadas",
+        "nl": "Objectinstellingen: het selectievakje voor dubbele export is verwijderd, het ingebouwde selectievakje „Ingeschakeld” regelt nu alleen de export\nHTTPS-servers die zijn ondertekend door een interne CA worden ondersteund: er kan een aangepast CA-certificaat worden geconfigureerd, certificaatverificatie kan optioneel worden uitgeschakeld (#15)\nExporteur: opdrachten die niet worden geaccepteerd (ack=false) worden niet langer geëxporteerd\nVerbindingstype ingesteld op „cloud”, omdat de Prometheus-server op afstand kan zijn\nDe ontbrekende vertalingen van het resultaat „Testverbinding” toegevoegd\nAfhankelijkheden zijn bijgewerkt",
+        "fr": "Paramètres des objets : suppression de la case d'exportation dupliquée, la case « Activé » intégrée contrôle uniquement l'export\nLes serveurs HTTPS signés par une CA interne sont pris en charge : un certificat CA personnalisé peut être configuré, sa vérification peut être désactivée (#15)\nExportateur : les commandes non confirmées (ack=false) ne sont plus exportées\nType de connexion « cloud » car le serveur Prometheus peut être distant\nAjout des traductions manquantes du résultat du « Test de connexion »\nLes dépendances ont été mises à jour",
+        "it": "Impostazioni oggetto: rimossa la casella Duplicata, la casella «Abilitato» ora controlla solo l'esportazione\nSono supportati i server HTTPS firmati da una CA interna: è possibile configurare un certificato CA personalizzato e disattivare (#15)\nEsportatore: i comandi non noti (ack=false) non sono più esportati\nTipo di connessione «cloud», poiché il server Prometheus è remoto\nAggiunte le traduzioni mancanti del «Test connection»\nLe dipendenze sono aggiornate",
+        "es": "Configuración del objeto: se ha eliminado la casilla de exportación duplicada, la casilla «Activado» integrada ahora controla solo la exportación\nSe admiten servidores HTTPS firmados por una CA interna: se puede configurar un certificado de CA personalizado y, si lo desea, deshabilitar la verificación (#15)\nExportador: los comandos no reconocidos (ack=false) ya no se exportan\nTipo de conexión en «nube», ya que el servidor Prometheus puede ser remoto\nAñadió las traducciones que faltaban al resultado de «Test connection»\nSe han actualizado las dependencias",
+        "pl": "Ustawienia obiektu: usunięto zduplikowane pole wyboru eksportu, wbudowane pole wyboru „Włączone” kontroluje teraz sam eksport\nObsługiwane są serwery HTTPS podpisane przez wewnętrzny urząd certyfikacji: można skonfigurować niestandardowy certyfikat certyfikatu, weryfikację certyfikatu można opcjonalnie wyłączyć (#15)\nEksporter: niezauważone polecenia (ack = false) nie są już eksportowane\nTyp połączenia ustawiony na „chmura”, ponieważ serwer Prometheus może być zdalny\nDodano brakujące tłumaczenia wyniku „Połączenie testowe”\nZależności zostały zaktualizowane",
+        "uk": "Параметри об'єкта: видалено прапорець експорту дублікатів, вбудований прапорець «Включено» тепер контролює експорт самостійно\nПідтримуються сервери HTTPS, підписані внутрішньою CA: можна налаштувати спеціальний сертифікат CA, перевірку сертифікатів можна необов'язково відключити (#15)\nЕкспортер: непідтверджені команди (ack=false) більше не експортуються\nТип підключення встановлено на «хмара», оскільки сервер Prometheus може бути віддаленим\nДодано відсутні переклади результату «Тестового з'єднання»\nЗалежності оновлено",
+        "zh-cn": "对象设置：移除了重复导出复选框，内置的 “启用” 复选框现在仅控制导出\n支持由内部 CA 签名的 HTTPS 服务器：可以配置自定义 CA 证书，可以选择禁用证书验证 (#15)\n导出器：不再导出未确认的命令（ack=false）\n连接类型设置为 “云”，因为 Prometheus 服务器可以是远程的\n添加了 “测试连接” 结果的缺失翻译\n依赖关系已更新"
+      },
       "1.0.1": {
         "en": "Adapter requires admin >= 7.8.23 now.",
         "de": "Adapter benötigt jetzt admin >= 7.8.23.",
@@ -80,7 +93,7 @@
     "mode": "daemon",
     "type": "misc-data",
     "compact": true,
-    "connectionType": "local",
+    "connectionType": "cloud",
     "dataSource": "poll",
     "adminUI": {
       "config": "json",
@@ -104,6 +117,8 @@
     "requestTimeout": 10,
     "username": "",
     "password": "",
+    "caCert": "",
+    "allowInsecureTls": false,
     "sources": [],
     "exporterEnabled": false,
     "port": 9126,

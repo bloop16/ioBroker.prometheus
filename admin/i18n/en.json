@@ -53,5 +53,9 @@
     "Base URL of the Alertmanager, e.g. http://192.168.1.10:9093": "Base URL of the Alertmanager, e.g. http://192.168.1.10:9093",
     "Read alerts from Alertmanager": "Read alerts from Alertmanager",
     "Reads active alerts and silences from a Prometheus Alertmanager into states below alertmanager. Silenced and inhibited alerts are not counted. Rules and silences stay in Alertmanager; this is read-only.": "Reads active alerts and silences from a Prometheus Alertmanager into states below alertmanager. Silenced and inhibited alerts are not counted. Rules and silences stay in Alertmanager; this is read-only.",
-    "When disabled, the alertmanager states are removed": "When disabled, the alertmanager states are removed"
+    "When disabled, the alertmanager states are removed": "When disabled, the alertmanager states are removed",
+    "Custom CA certificate (PEM, optional)": "Custom CA certificate (PEM, optional)",
+    "Only needed for HTTPS servers signed by an internal CA. Paste the CA certificate(s) including the BEGIN/END lines; they are trusted in addition to the default root certificates.": "Only needed for HTTPS servers signed by an internal CA. Paste the CA certificate(s) including the BEGIN/END lines; they are trusted in addition to the default root certificates.",
+    "Do not verify the TLS certificate (insecure)": "Do not verify the TLS certificate (insecure)",
+    "Accepts any server certificate. Use only for testing - prefer the CA certificate field.": "Accepts any server certificate. Use only for testing - prefer the CA certificate field."
 }

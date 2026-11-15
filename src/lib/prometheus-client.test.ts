@@ -1,4 +1,5 @@
 import { expect } from "chai";
+import https from "node:https";
 import sinon from "sinon";
 import { PrometheusClient } from "./prometheus-client";
 
@@ -160,5 +161,23 @@ describe("prometheus-client => alertRules", () => {
         let error: Error | undefined;
         await client.alertRules().catch((e: Error) => (error = e));
         expect(error?.message).to.contain("Unexpected response");
+    });
+});
+
+describe("prometheus-client => TLS", () => {
+    it("passes the configured HTTPS agent to every request", async () => {
+        const get = sinon.stub().resolves({ data: { status: "success", data: [] } });
+        const httpsAgent = new https.Agent();
+        const client = new PrometheusClient({ baseUrl: "https://prom:9090", timeoutMs: 5000, httpsAgent }, get);
+
+        await client.labelNames();
+        expect(get.firstCall.args[1].httpsAgent).to.equal(httpsAgent);
+    });
+
+    it("sends no agent when none is configured", async () => {
+        const { client, get } = clientWithResponse({ status: "success", data: [] });
+
+        await client.labelNames();
+        expect(get.firstCall.args[1].httpsAgent).to.equal(undefined);
     });
 });

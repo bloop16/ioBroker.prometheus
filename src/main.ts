@@ -5,14 +5,16 @@
 // The adapter-core module gives you access to the core ioBroker functions
 // you need to create an adapter
 import * as http from "node:http";
+import type * as https from "node:https";
 
 import * as utils from "@iobroker/adapter-core";
 
 import { testAlertmanager } from "./lib/alertmanager-client";
 import { ALERTMANAGER_CHANNEL, startAlertmanagerPoller, type AlertmanagerPoller } from "./lib/alertmanager-poller";
 import { AGGREGATIONS, buildQuery, isValidMetricName, type Aggregation } from "./lib/query-builder";
-import { MetricsRegistry, toMetricValue } from "./lib/exporter";
+import { MetricsRegistry, isExportableUpdate, toMetricValue } from "./lib/exporter";
 import { PrometheusClient, type PromSample } from "./lib/prometheus-client";
+import { buildHttpsAgent, tlsSettingsFromMessage, type TlsSettings } from "./lib/tls-options";
 import {
     cleanAdminValue,
     collectFilters,
@@ -58,6 +60,8 @@ class Prometheus extends utils.Adapter {
     private scrapeCount = 0;
     private lastScrapeMs = 0;
     private systemLanguage = "en";
+    /** HTTPS agent built from the saved TLS settings; undefined = Node defaults */
+    private httpsAgent?: https.Agent;
 
     public constructor(options: Partial<utils.AdapterOptions> = {}) {
         super({
@@ -83,6 +87,16 @@ class Prometheus extends utils.Adapter {
             } catch (error) {
                 this.log.error(`Failed to start the /metrics exporter: ${this.errorText(error)}`);
             }
+        }
+
+        try {
+            this.httpsAgent = buildHttpsAgent(this.savedTlsSettings());
+        } catch (error) {
+            this.log.error(`Cannot use the configured CA certificate: ${this.errorText(error)}`);
+            return;
+        }
+        if (this.config.allowInsecureTls) {
+            this.log.warn("TLS certificate verification is disabled - connections to Prometheus are not protected");
         }
 
         const { sources, errors } = normalizeSources(this.config.sources, this.config.url);
@@ -194,6 +208,7 @@ class Prometheus extends utils.Adapter {
                 timeoutMs: this.requestTimeoutMs(),
                 username: this.config.username || undefined,
                 password: this.config.password || undefined,
+                httpsAgent: this.httpsAgent,
             }),
             inFlight: false,
         };
@@ -341,16 +356,9 @@ class Prometheus extends utils.Adapter {
         ) as Record<string, string>;
         try {
             switch (obj.command) {
-                case "testConnection": {
-                    const client = this.clientForUrl(message.url, message.username, message.password);
-                    if (!client) {
-                        this.respond(obj, { error: "Invalid Prometheus URL (expected e.g. http://host:9090)" });
-                        break;
-                    }
-                    await client.labelNames();
-                    this.respond(obj, { result: "connected" });
+                case "testConnection":
+                    await this.testConnection(obj, message, tlsSettingsFromMessage(raw));
                     break;
-                }
                 case "testAlertmanager":
                     this.respond(
                         obj,
@@ -405,6 +413,38 @@ class Prometheus extends utils.Adapter {
             } else {
                 this.respond(obj, []);
             }
+        }
+    }
+
+    /**
+     * Tests the connection with the (possibly unsaved) values of the Admin UI
+     *
+     * @param obj - The original Admin UI message
+     * @param message - Cleaned message payload
+     * @param tls - Unsaved TLS settings; undefined = use the saved ones
+     */
+    private async testConnection(
+        obj: ioBroker.Message,
+        message: Record<string, string>,
+        tls: TlsSettings | undefined,
+    ): Promise<void> {
+        // throws on an invalid CA certificate; reported to the Admin UI by onMessage
+        const oneOffAgent = tls ? buildHttpsAgent(tls) : undefined;
+        try {
+            const client = this.clientForUrl(
+                message.url,
+                message.username,
+                message.password,
+                tls ? oneOffAgent : this.httpsAgent,
+            );
+            if (!client) {
+                this.respond(obj, { error: "Invalid Prometheus URL (expected e.g. http://host:9090)" });
+                return;
+            }
+            await client.labelNames();
+            this.respond(obj, { result: "connected" });
+        } finally {
+            oneOffAgent?.destroy();
         }
     }
 
@@ -537,8 +577,14 @@ class Prometheus extends utils.Adapter {
      * @param url - Prometheus base URL from the Admin UI, if provided
      * @param username - Basic auth user name override, if provided
      * @param password - Basic auth password override, if provided
+     * @param httpsAgent - HTTPS agent to use; defaults to the one built from the saved settings
      */
-    private clientForUrl(url: string | undefined, username?: string, password?: string): PrometheusClient | undefined {
+    private clientForUrl(
+        url: string | undefined,
+        username?: string,
+        password?: string,
+        httpsAgent: https.Agent | undefined = this.httpsAgent,
+    ): PrometheusClient | undefined {
         // jsonData patterns may arrive unresolved (older Admin) or as the
         // string "undefined" when the field is still empty - ignore those
         const fromMessage = url?.trim();
@@ -556,7 +602,12 @@ class Prometheus extends utils.Adapter {
             timeoutMs: this.requestTimeoutMs(),
             username: user || undefined,
             password: user ? (password ?? this.config.password ?? "") : undefined,
+            httpsAgent,
         });
+    }
+
+    private savedTlsSettings(): TlsSettings {
+        return { caCert: this.config.caCert, allowInsecureTls: this.config.allowInsecureTls };
     }
 
     /** Starts tracking all custom-enabled states and the /metrics HTTP server */
@@ -646,7 +697,7 @@ class Prometheus extends utils.Adapter {
             const state = await this.getForeignStateAsync(id);
             this.registry.set(id, {
                 name: this.stateName(obj) || id,
-                value: toMetricValue(state?.val),
+                value: isExportableUpdate(state) ? toMetricValue(state?.val) : undefined,
                 metricName: custom.metricName?.trim() || undefined,
             });
             if (!this.exportedIds.has(id)) {
@@ -696,7 +747,7 @@ class Prometheus extends utils.Adapter {
      * @param state - New state value or null/undefined when deleted
      */
     private onStateChange(id: string, state: ioBroker.State | null | undefined): void {
-        if (!this.exportedIds.has(id)) {
+        if (!this.exportedIds.has(id) || !isExportableUpdate(state)) {
             return;
         }
         this.registry.updateValue(id, state ? toMetricValue(state.val) : undefined);
@@ -783,6 +834,8 @@ class Prometheus extends utils.Adapter {
             }
             this.registry.clear();
             this.exportedIds.clear();
+            this.httpsAgent?.destroy();
+            this.httpsAgent = undefined;
             callback();
         } catch (error) {
             this.log.error(`Error during unloading: ${this.errorText(error)}`);
