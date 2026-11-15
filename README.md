@@ -123,7 +123,7 @@ data does not count as a connection problem). With the exporter enabled, `info.l
     Placeholder for the next version (at the beginning of the line):
     ### **WORK IN PROGRESS**
 -->
-### **WORK IN PROGRESS**
+### 1.0.2 (2026-11-15)
 - (bloop16) Object settings: removed the duplicate export checkbox, the built-in "Enabled" checkbox now controls the export alone
 - (bloop16) HTTPS servers signed by an internal CA are supported: a custom CA certificate can be configured, certificate verification can optionally be disabled (#15)
 - (bloop16) Exporter: unacknowledged commands (ack=false) are no longer exported
