@@ -3,6 +3,7 @@
  * the "alertmanager" channel.
  */
 
+import type https from "node:https";
 import { AlertmanagerClient, type AlertEntry, type SilenceEntry } from "./alertmanager-client";
 import { normalizeAlertmanagerConfig, type NormalizedAlertmanagerConfig } from "./alertmanager-config";
 import { groupAlerts, type AlertGroup } from "./alertmanager-groups";
@@ -315,6 +316,7 @@ export class AlertmanagerPoller {
  * @param settings - The adapter configuration
  * @param timeoutMs - HTTP request timeout in milliseconds
  * @param onHealth - Called with the reachability after each poll
+ * @param httpsAgent - Optional HTTPS agent with the TLS settings (custom CA, insecure mode)
  * @returns The running poller, or undefined if the configuration is unusable
  */
 export async function startAlertmanagerPoller(
@@ -322,6 +324,7 @@ export async function startAlertmanagerPoller(
     settings: ioBroker.AdapterConfig,
     timeoutMs: number,
     onHealth: (healthy: boolean) => void,
+    httpsAgent?: https.Agent,
 ): Promise<AlertmanagerPoller | undefined> {
     const config = normalizeAlertmanagerConfig({
         url: settings.alertmanagerUrl,
@@ -343,6 +346,7 @@ export async function startAlertmanagerPoller(
         timeoutMs,
         username: settings.alertmanagerUsername || undefined,
         password: settings.alertmanagerPassword || undefined,
+        httpsAgent,
     });
     const prometheusUrl = validateUrl(settings.url);
     const rules = prometheusUrl
@@ -351,6 +355,7 @@ export async function startAlertmanagerPoller(
               timeoutMs,
               username: settings.username || undefined,
               password: settings.password || undefined,
+              httpsAgent,
           })
         : undefined;
     const poller = new AlertmanagerPoller(host, client, config, onHealth, rules);

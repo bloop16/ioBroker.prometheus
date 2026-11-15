@@ -13,6 +13,7 @@
  */
 
 import axios from "axios";
+import type https from "node:https";
 import type { HttpGet } from "./prometheus-client";
 import { validateUrl } from "./source-config";
 
@@ -26,6 +27,8 @@ export interface AlertmanagerClientOptions {
     username?: string;
     /** Optional basic auth password */
     password?: string;
+    /** Optional HTTPS agent carrying custom TLS settings (custom CA, insecure mode) */
+    httpsAgent?: https.Agent;
 }
 
 /** One firing alert */
@@ -176,6 +179,7 @@ export class AlertmanagerClient {
         const response = await this.httpGet(`${this.options.baseUrl}${path}`, {
             params,
             timeout: this.options.timeoutMs,
+            httpsAgent: this.options.httpsAgent,
             auth: this.options.username
                 ? { username: this.options.username, password: this.options.password ?? "" }
                 : undefined,

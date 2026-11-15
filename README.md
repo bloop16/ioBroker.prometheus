@@ -60,10 +60,11 @@ community project and is not affiliated with or endorsed by the Prometheus proje
 
 ### HTTPS with an internal CA
 
-If your Prometheus server uses a certificate signed by an internal (private) CA, paste the CA
+If your Prometheus server or Alertmanager uses a certificate signed by an internal (private) CA, paste the CA
 certificate in PEM format (including the `-----BEGIN CERTIFICATE-----` / `-----END CERTIFICATE-----`
 lines) into **Custom CA certificate**. Several certificates (e.g. root and intermediate) can be
-pasted one after another. They are trusted in addition to the default root certificates.
+pasted one after another. They are trusted in addition to the default root certificates. The
+setting applies to Prometheus and Alertmanager.
 
 **Do not verify the TLS certificate** accepts any server certificate. It is meant for testing
 only, because the connection is then no longer protected against man-in-the-middle attacks.
@@ -172,6 +173,7 @@ reachable (a query returning no data does not count as a connection problem). Wi
 -->
 ### **WORK IN PROGRESS**
 - (bloop16) Alertmanager as additional source: active alerts and silences as states, with one folder per alert
+- (bloop16) Alertmanager connections use the custom CA certificate and TLS settings as well
 
 ### 1.0.2 (2026-11-15)
 - (bloop16) Object settings: removed the duplicate export checkbox, the built-in "Enabled" checkbox now controls the export alone

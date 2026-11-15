@@ -85,7 +85,9 @@ class Prometheus extends utils.Adapter {
       return;
     }
     if (this.config.allowInsecureTls) {
-      this.log.warn("TLS certificate verification is disabled - connections to Prometheus are not protected");
+      this.log.warn(
+        "TLS certificate verification is disabled - connections to Prometheus and Alertmanager are not protected"
+      );
     }
     const { sources, errors } = (0, import_source_config.normalizeSources)(this.config.sources, this.config.url);
     for (const error of errors) {
@@ -127,7 +129,8 @@ class Prometheus extends utils.Adapter {
       this,
       this.config,
       this.requestTimeoutMs(),
-      (healthy) => this.setHealth(ALERTMANAGER_HEALTH_KEY, healthy)
+      (healthy) => this.setHealth(ALERTMANAGER_HEALTH_KEY, healthy),
+      this.httpsAgent
     );
     if (this.isShuttingDown) {
       (_a = this.alertmanagerPoller) == null ? void 0 : _a.stop();
@@ -332,15 +335,7 @@ class Prometheus extends utils.Adapter {
           await this.testConnection(obj, message, (0, import_tls_options.tlsSettingsFromMessage)(raw));
           break;
         case "testAlertmanager":
-          this.respond(
-            obj,
-            await (0, import_alertmanager_client.testAlertmanager)({
-              url: message.url || this.config.alertmanagerUrl,
-              timeoutMs: this.requestTimeoutMs(),
-              username: message.username || void 0,
-              password: message.password || void 0
-            })
-          );
+          await this.testAlertmanagerConnection(obj, message, (0, import_tls_options.tlsSettingsFromMessage)(raw));
           break;
         case "getMetricNames":
           this.respond(obj, await this.listForDropdown(message, (client) => client.metricNames()));
@@ -401,20 +396,49 @@ class Prometheus extends utils.Adapter {
    * @param tls - Unsaved TLS settings; undefined = use the saved ones
    */
   async testConnection(obj, message, tls) {
-    const oneOffAgent = tls ? (0, import_tls_options.buildHttpsAgent)(tls) : void 0;
-    try {
-      const client = this.clientForUrl(
-        message.url,
-        message.username,
-        message.password,
-        tls ? oneOffAgent : this.httpsAgent
-      );
+    await this.withRequestAgent(tls, async (httpsAgent) => {
+      const client = this.clientForUrl(message.url, message.username, message.password, httpsAgent);
       if (!client) {
         this.respond(obj, { error: "Invalid Prometheus URL (expected e.g. http://host:9090)" });
         return;
       }
       await client.labelNames();
       this.respond(obj, { result: "connected" });
+    });
+  }
+  /**
+   * Tests the Alertmanager connection with the (possibly unsaved) values of the Admin UI
+   *
+   * @param obj - The original Admin UI message
+   * @param message - Cleaned message payload
+   * @param tls - Unsaved TLS settings; undefined = use the saved ones
+   */
+  async testAlertmanagerConnection(obj, message, tls) {
+    await this.withRequestAgent(tls, async (httpsAgent) => {
+      const result = await (0, import_alertmanager_client.testAlertmanager)({
+        url: message.url || this.config.alertmanagerUrl,
+        timeoutMs: this.requestTimeoutMs(),
+        username: message.username || void 0,
+        password: message.password || void 0,
+        httpsAgent
+      });
+      this.respond(obj, result);
+    });
+  }
+  /**
+   * Runs an Admin UI request with the HTTPS agent for the given TLS settings.
+   * Unsaved settings get a one-off agent that is destroyed afterwards.
+   *
+   * @param tls - Unsaved TLS settings; undefined = use the agent of the saved settings
+   * @param request - The request to run
+   */
+  async withRequestAgent(tls, request) {
+    if (!tls) {
+      return request(this.httpsAgent);
+    }
+    const oneOffAgent = (0, import_tls_options.buildHttpsAgent)(tls);
+    try {
+      await request(oneOffAgent);
     } finally {
       oneOffAgent == null ? void 0 : oneOffAgent.destroy();
     }

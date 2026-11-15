@@ -134,6 +134,7 @@ class AlertmanagerClient {
     const response = await this.httpGet(`${this.options.baseUrl}${path}`, {
       params,
       timeout: this.options.timeoutMs,
+      httpsAgent: this.options.httpsAgent,
       auth: this.options.username ? { username: this.options.username, password: (_a = this.options.password) != null ? _a : "" } : void 0
     });
     return response.data;

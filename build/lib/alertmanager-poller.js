@@ -251,7 +251,7 @@ class AlertmanagerPoller {
     return new Set(Object.keys(objects).map((id) => id.slice(prefix.length)));
   }
 }
-async function startAlertmanagerPoller(host, settings, timeoutMs, onHealth) {
+async function startAlertmanagerPoller(host, settings, timeoutMs, onHealth, httpsAgent) {
   const config = (0, import_alertmanager_config.normalizeAlertmanagerConfig)({
     url: settings.alertmanagerUrl,
     pollInterval: settings.alertmanagerPollInterval
@@ -269,14 +269,16 @@ async function startAlertmanagerPoller(host, settings, timeoutMs, onHealth) {
     baseUrl: config.url,
     timeoutMs,
     username: settings.alertmanagerUsername || void 0,
-    password: settings.alertmanagerPassword || void 0
+    password: settings.alertmanagerPassword || void 0,
+    httpsAgent
   });
   const prometheusUrl = (0, import_source_config.validateUrl)(settings.url);
   const rules = prometheusUrl ? new import_prometheus_client.PrometheusClient({
     baseUrl: prometheusUrl,
     timeoutMs,
     username: settings.username || void 0,
-    password: settings.password || void 0
+    password: settings.password || void 0,
+    httpsAgent
   }) : void 0;
   const poller = new AlertmanagerPoller(host, client, config, onHealth, rules);
   await poller.start();

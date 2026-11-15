@@ -1,5 +1,6 @@
 import { expect } from "chai";
 import sinon from "sinon";
+import https from "node:https";
 import { AlertmanagerClient, testAlertmanager } from "./alertmanager-client";
 
 const ALERT = {
@@ -153,5 +154,23 @@ describe("alertmanager-client => testAlertmanager", () => {
     it("rejects an invalid url without a request", async () => {
         const result = await testAlertmanager({ url: "ftp://am", timeoutMs: 1000 });
         expect(result).to.have.property("error");
+    });
+});
+
+describe("alertmanager-client => TLS", () => {
+    it("passes the configured HTTPS agent to every request", async () => {
+        const get = sinon.stub().resolves({ data: [] });
+        const httpsAgent = new https.Agent();
+        const client = new AlertmanagerClient({ baseUrl: "https://am:9093", timeoutMs: 5000, httpsAgent }, get);
+
+        await client.activeSilences();
+        expect(get.firstCall.args[1].httpsAgent).to.equal(httpsAgent);
+    });
+
+    it("sends no agent when none is configured", async () => {
+        const { client, get } = clientWithResponse([]);
+
+        await client.activeSilences();
+        expect(get.firstCall.args[1].httpsAgent).to.equal(undefined);
     });
 });

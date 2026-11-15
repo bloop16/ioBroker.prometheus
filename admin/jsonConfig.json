@@ -276,7 +276,7 @@
             "variant": "contained",
             "showProcess": true,
             "icon": "search",
-            "jsonData": "{\"url\": \"${data.alertmanagerUrl}\", \"username\": \"${data.alertmanagerUsername}\", \"password\": \"${data.alertmanagerPassword}\"}",
+            "jsonData": "{\"url\": \"${data.alertmanagerUrl}\", \"username\": \"${data.alertmanagerUsername}\", \"password\": \"${data.alertmanagerPassword}\", \"caCert\": ${JSON.stringify(data.caCert || \"\")}, \"allowInsecureTls\": ${data.allowInsecureTls ? \"true\" : \"false\"}}",
             "hidden": "!data.alertmanagerEnabled",
             "xs": 12,
             "sm": 12,

@@ -52,6 +52,7 @@ export interface RequestOptions {
     auth?: { username: string; password: string };
     /** Timeout in milliseconds */
     timeout: number;
+    /** HTTPS agent with custom TLS settings, if any */
     httpsAgent?: https.Agent;
 }
 
