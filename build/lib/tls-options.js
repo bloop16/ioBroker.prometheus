@@ -40,6 +40,13 @@ function defaultCaCertificates() {
   return typeof import_node_tls.default.getCACertificates === "function" ? import_node_tls.default.getCACertificates("default") : import_node_tls.default.rootCertificates;
 }
 const PEM_BLOCK = /-----BEGIN CERTIFICATE-----[\s\S]+?-----END CERTIFICATE-----/g;
+const INPUT_PREVIEW_LENGTH = 40;
+function describeInput(text) {
+  if (text.length <= INPUT_PREVIEW_LENGTH) {
+    return `"${text}"`;
+  }
+  return `"${text.slice(0, INPUT_PREVIEW_LENGTH)}\u2026" (${text.length} characters)`;
+}
 function parseCaCertificates(raw) {
   var _a;
   const text = (raw != null ? raw : "").replace(/\r\n/g, "\n").trim();
@@ -48,7 +55,9 @@ function parseCaCertificates(raw) {
   }
   const blocks = (_a = text.match(PEM_BLOCK)) != null ? _a : [];
   if (blocks.length === 0) {
-    throw new Error("CA certificate contains no PEM certificate (expected -----BEGIN CERTIFICATE-----)");
+    throw new Error(
+      `CA certificate contains no PEM certificate (expected -----BEGIN CERTIFICATE-----, received ${describeInput(text)})`
+    );
   }
   return blocks.map((block, index) => {
     try {

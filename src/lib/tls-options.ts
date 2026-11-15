@@ -28,6 +28,20 @@ function defaultCaCertificates(): readonly string[] {
 
 const PEM_BLOCK = /-----BEGIN CERTIFICATE-----[\s\S]+?-----END CERTIFICATE-----/g;
 
+const INPUT_PREVIEW_LENGTH = 40;
+
+/**
+ * Short preview of rejected input; CA certificates are public, so this is safe to show
+ *
+ * @param text - The rejected input
+ */
+function describeInput(text: string): string {
+    if (text.length <= INPUT_PREVIEW_LENGTH) {
+        return `"${text}"`;
+    }
+    return `"${text.slice(0, INPUT_PREVIEW_LENGTH)}…" (${text.length} characters)`;
+}
+
 /**
  * Extracts and validates all PEM certificate blocks from user input
  *
@@ -41,7 +55,9 @@ export function parseCaCertificates(raw: string | undefined): string[] {
     }
     const blocks = text.match(PEM_BLOCK) ?? [];
     if (blocks.length === 0) {
-        throw new Error("CA certificate contains no PEM certificate (expected -----BEGIN CERTIFICATE-----)");
+        throw new Error(
+            `CA certificate contains no PEM certificate (expected -----BEGIN CERTIFICATE-----, received ${describeInput(text)})`,
+        );
     }
     return blocks.map((block, index) => {
         try {

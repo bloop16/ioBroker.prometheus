@@ -71,6 +71,12 @@ describe("tls-options => parseCaCertificates", () => {
         expect(() => parseCaCertificates("not a certificate")).to.throw(/no PEM certificate/i);
     });
 
+    it("names the beginning of the rejected input to ease troubleshooting", () => {
+        expect(() => parseCaCertificates("/etc/ssl/my-ca.crt")).to.throw(/received "\/etc\/ssl\/my-ca\.crt"/);
+        const long = "x".repeat(100);
+        expect(() => parseCaCertificates(long)).to.throw(/received "x{40}…" \(100 characters\)/);
+    });
+
     it("rejects a PEM block with broken content", () => {
         const broken = "-----BEGIN CERTIFICATE-----\nAAAA\n-----END CERTIFICATE-----";
         expect(() => parseCaCertificates(broken)).to.throw(/invalid CA certificate/i);
