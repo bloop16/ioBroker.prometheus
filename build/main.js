@@ -26,6 +26,7 @@ var utils = __toESM(require("@iobroker/adapter-core"));
 var import_query_builder = require("./lib/query-builder");
 var import_exporter = require("./lib/exporter");
 var import_prometheus_client = require("./lib/prometheus-client");
+var import_tls_options = require("./lib/tls-options");
 var import_source_config = require("./lib/source-config");
 const DEFAULT_REQUEST_TIMEOUT_SEC = 10;
 const MAX_DROPDOWN_ENTRIES = 2e3;
@@ -48,6 +49,8 @@ class Prometheus extends utils.Adapter {
   scrapeCount = 0;
   lastScrapeMs = 0;
   systemLanguage = "en";
+  /** HTTPS agent built from the saved TLS settings; undefined = Node defaults */
+  httpsAgent;
   constructor(options = {}) {
     super({
       ...options,
@@ -70,6 +73,15 @@ class Prometheus extends utils.Adapter {
       } catch (error) {
         this.log.error(`Failed to start the /metrics exporter: ${this.errorText(error)}`);
       }
+    }
+    try {
+      this.httpsAgent = (0, import_tls_options.buildHttpsAgent)(this.savedTlsSettings());
+    } catch (error) {
+      this.log.error(`Cannot use the configured CA certificate: ${this.errorText(error)}`);
+      return;
+    }
+    if (this.config.allowInsecureTls) {
+      this.log.warn("TLS certificate verification is disabled - connections to Prometheus are not protected");
     }
     const { sources, errors } = (0, import_source_config.normalizeSources)(this.config.sources, this.config.url);
     for (const error of errors) {
@@ -141,7 +153,8 @@ class Prometheus extends utils.Adapter {
         baseUrl: source.url,
         timeoutMs: this.requestTimeoutMs(),
         username: this.config.username || void 0,
-        password: this.config.password || void 0
+        password: this.config.password || void 0,
+        httpsAgent: this.httpsAgent
       }),
       inFlight: false
     };
@@ -280,16 +293,9 @@ class Prometheus extends utils.Adapter {
     );
     try {
       switch (obj.command) {
-        case "testConnection": {
-          const client = this.clientForUrl(message.url, message.username, message.password);
-          if (!client) {
-            this.respond(obj, { error: "Invalid Prometheus URL (expected e.g. http://host:9090)" });
-            break;
-          }
-          await client.labelNames();
-          this.respond(obj, { result: "connected" });
+        case "testConnection":
+          await this.testConnection(obj, message, (0, import_tls_options.tlsSettingsFromMessage)(raw));
           break;
-        }
         case "getMetricNames":
           this.respond(obj, await this.listForDropdown(message, (client) => client.metricNames()));
           break;
@@ -339,6 +345,32 @@ class Prometheus extends utils.Adapter {
       } else {
         this.respond(obj, []);
       }
+    }
+  }
+  /**
+   * Tests the connection with the (possibly unsaved) values of the Admin UI
+   *
+   * @param obj - The original Admin UI message
+   * @param message - Cleaned message payload
+   * @param tls - Unsaved TLS settings; undefined = use the saved ones
+   */
+  async testConnection(obj, message, tls) {
+    const oneOffAgent = tls ? (0, import_tls_options.buildHttpsAgent)(tls) : void 0;
+    try {
+      const client = this.clientForUrl(
+        message.url,
+        message.username,
+        message.password,
+        tls ? oneOffAgent : this.httpsAgent
+      );
+      if (!client) {
+        this.respond(obj, { error: "Invalid Prometheus URL (expected e.g. http://host:9090)" });
+        return;
+      }
+      await client.labelNames();
+      this.respond(obj, { result: "connected" });
+    } finally {
+      oneOffAgent == null ? void 0 : oneOffAgent.destroy();
     }
   }
   respond(obj, result) {
@@ -441,8 +473,9 @@ class Prometheus extends utils.Adapter {
    * @param url - Prometheus base URL from the Admin UI, if provided
    * @param username - Basic auth user name override, if provided
    * @param password - Basic auth password override, if provided
+   * @param httpsAgent - HTTPS agent to use; defaults to the one built from the saved settings
    */
-  clientForUrl(url, username, password) {
+  clientForUrl(url, username, password, httpsAgent = this.httpsAgent) {
     var _a, _b;
     const fromMessage = url == null ? void 0 : url.trim();
     const usable = fromMessage && !fromMessage.includes("${") && fromMessage !== "undefined" && fromMessage !== "null" ? fromMessage : void 0;
@@ -455,8 +488,12 @@ class Prometheus extends utils.Adapter {
       baseUrl: validated,
       timeoutMs: this.requestTimeoutMs(),
       username: user || void 0,
-      password: user ? (_b = password != null ? password : this.config.password) != null ? _b : "" : void 0
+      password: user ? (_b = password != null ? password : this.config.password) != null ? _b : "" : void 0,
+      httpsAgent
     });
+  }
+  savedTlsSettings() {
+    return { caCert: this.config.caCert, allowInsecureTls: this.config.allowInsecureTls };
   }
   /** Starts tracking all custom-enabled states and the /metrics HTTP server */
   async startExporter() {
@@ -545,7 +582,7 @@ class Prometheus extends utils.Adapter {
       const state = await this.getForeignStateAsync(id);
       this.registry.set(id, {
         name: this.stateName(obj) || id,
-        value: (0, import_exporter.toMetricValue)(state == null ? void 0 : state.val),
+        value: (0, import_exporter.isExportableUpdate)(state) ? (0, import_exporter.toMetricValue)(state == null ? void 0 : state.val) : void 0,
         metricName: ((_b = custom.metricName) == null ? void 0 : _b.trim()) || void 0
       });
       if (!this.exportedIds.has(id)) {
@@ -593,7 +630,7 @@ class Prometheus extends utils.Adapter {
    * @param state - New state value or null/undefined when deleted
    */
   onStateChange(id, state) {
-    if (!this.exportedIds.has(id)) {
+    if (!this.exportedIds.has(id) || !(0, import_exporter.isExportableUpdate)(state)) {
       return;
     }
     this.registry.updateValue(id, state ? (0, import_exporter.toMetricValue)(state.val) : void 0);
@@ -656,6 +693,7 @@ iobroker_exporter_exported_states ${this.registry.size}
    * @param callback - Callback function
    */
   onUnload(callback) {
+    var _a;
     this.isShuttingDown = true;
     try {
       for (const timeout of this.startupTimeouts) {
@@ -672,6 +710,8 @@ iobroker_exporter_exported_states ${this.registry.size}
       }
       this.registry.clear();
       this.exportedIds.clear();
+      (_a = this.httpsAgent) == null ? void 0 : _a.destroy();
+      this.httpsAgent = void 0;
       callback();
     } catch (error) {
       this.log.error(`Error during unloading: ${this.errorText(error)}`);

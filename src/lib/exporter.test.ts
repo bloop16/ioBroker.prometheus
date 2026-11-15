@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { MetricsRegistry, toMetricValue } from "./exporter";
+import { MetricsRegistry, isExportableUpdate, toMetricValue } from "./exporter";
 
 describe("exporter => toMetricValue", () => {
     it("passes finite numbers through", () => {
@@ -90,5 +90,20 @@ describe("exporter => MetricsRegistry", () => {
         expect(registry.size).to.equal(0);
         registry.set("a.0.b", { name: "b", value: 1 });
         expect(registry.size).to.equal(1);
+    });
+});
+
+describe("exporter => isExportableUpdate", () => {
+    it("accepts acknowledged values", () => {
+        expect(isExportableUpdate({ ack: true })).to.equal(true);
+    });
+
+    it("ignores unacknowledged commands", () => {
+        expect(isExportableUpdate({ ack: false })).to.equal(false);
+    });
+
+    it("accepts a deleted state so its value gets removed", () => {
+        expect(isExportableUpdate(null)).to.equal(true);
+        expect(isExportableUpdate(undefined)).to.equal(true);
     });
 });

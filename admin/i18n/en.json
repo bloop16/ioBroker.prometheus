@@ -47,5 +47,9 @@
     "Value is exposed on the /metrics endpoint of the adapter (exporter must be enabled in the instance settings)": "Value is exposed on the /metrics endpoint of the adapter (exporter must be enabled in the instance settings)",
     "Custom metric name (optional)": "Custom metric name (optional)",
     "Allowed characters: letters, digits, underscore, colon. Empty = iobroker_state with the state id as label": "Allowed characters: letters, digits, underscore, colon. Empty = iobroker_state with the state id as label",
-    "This state cannot be exported: Prometheus stores numbers only (numeric and boolean states are supported)": "This state cannot be exported: Prometheus stores numbers only (numeric and boolean states are supported)"
+    "This state cannot be exported: Prometheus stores numbers only (numeric and boolean states are supported)": "This state cannot be exported: Prometheus stores numbers only (numeric and boolean states are supported)",
+    "Custom CA certificate (PEM, optional)": "Custom CA certificate (PEM, optional)",
+    "Only needed for HTTPS servers signed by an internal CA. Paste the CA certificate(s) including the BEGIN/END lines; they are trusted in addition to the default root certificates.": "Only needed for HTTPS servers signed by an internal CA. Paste the CA certificate(s) including the BEGIN/END lines; they are trusted in addition to the default root certificates.",
+    "Do not verify the TLS certificate (insecure)": "Do not verify the TLS certificate (insecure)",
+    "Accepts any server certificate. Use only for testing - prefer the CA certificate field.": "Accepts any server certificate. Use only for testing - prefer the CA certificate field."
 }

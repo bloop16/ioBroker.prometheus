@@ -78,6 +78,29 @@
             "lg": 2,
             "xl": 2
         },
+        "caCert": {
+            "type": "text",
+            "label": "Custom CA certificate (PEM, optional)",
+            "help": "Only needed for HTTPS servers signed by an internal CA. Paste the CA certificate(s) including the BEGIN/END lines; they are trusted in addition to the default root certificates.",
+            "minRows": 3,
+            "maxRows": 10,
+            "newLine": true,
+            "xs": 12,
+            "sm": 12,
+            "md": 6,
+            "lg": 6,
+            "xl": 6
+        },
+        "allowInsecureTls": {
+            "type": "checkbox",
+            "label": "Do not verify the TLS certificate (insecure)",
+            "help": "Accepts any server certificate. Use only for testing - prefer the CA certificate field.",
+            "xs": 12,
+            "sm": 12,
+            "md": 6,
+            "lg": 6,
+            "xl": 6
+        },
         "_testConnection": {
             "type": "sendTo",
             "label": "Test connection",
@@ -85,11 +108,20 @@
             "variant": "contained",
             "showProcess": true,
             "icon": "search",
-            "jsonData": "{\"url\": \"${data.url}\", \"username\": \"${data.username}\", \"password\": \"${data.password}\"}",
+            "jsonData": "{\"url\": \"${data.url}\", \"username\": \"${data.username}\", \"password\": \"${data.password}\", \"caCert\": ${JSON.stringify(data.caCert || \"\")}, \"allowInsecureTls\": ${data.allowInsecureTls ? \"true\" : \"false\"}}",
             "result": {
                 "connected": {
                     "en": "Connection successful",
-                    "de": "Verbindung erfolgreich"
+                    "de": "Verbindung erfolgreich",
+                    "ru": "Подключение успешно",
+                    "pt": "Conexão bem-sucedida",
+                    "nl": "Verbinding geslaagd",
+                    "fr": "Connexion réussie",
+                    "it": "Connessione riuscita",
+                    "es": "Conexión correcta",
+                    "pl": "Połączenie udane",
+                    "uk": "Підключення успішне",
+                    "zh-cn": "连接成功"
                 }
             },
             "xs": 12,

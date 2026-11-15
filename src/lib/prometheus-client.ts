@@ -10,6 +10,7 @@
  */
 
 import axios from "axios";
+import type https from "node:https";
 import { isValidLabelName, isValidMetricName } from "./query-builder";
 
 /** Connection options for one Prometheus server */
@@ -22,6 +23,8 @@ export interface PrometheusClientOptions {
     username?: string;
     /** Optional basic auth password */
     password?: string;
+    /** Optional HTTPS agent carrying custom TLS settings (custom CA, insecure mode) */
+    httpsAgent?: https.Agent;
 }
 
 /** One sample of an instant query result */
@@ -36,6 +39,7 @@ interface RequestOptions {
     params?: Record<string, string>;
     auth?: { username: string; password: string };
     timeout: number;
+    httpsAgent?: https.Agent;
 }
 
 /** Minimal HTTP GET signature so tests can inject a stub instead of axios */
@@ -154,6 +158,7 @@ export class PrometheusClient {
         const response = await this.httpGet(`${this.options.baseUrl}${path}`, {
             params,
             timeout: this.options.timeoutMs,
+            httpsAgent: this.options.httpsAgent,
             auth: this.options.username
                 ? { username: this.options.username, password: this.options.password ?? "" }
                 : undefined,
