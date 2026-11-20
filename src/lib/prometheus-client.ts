@@ -5,6 +5,7 @@
  * - /api/v1/query                      (instant queries)
  * - /api/v1/labels                     (label names)
  * - /api/v1/label/<name>/values        (label / metric name values)
+ * - /api/v1/rules                      (alert rules)
  *
  * https://prometheus.io/docs/prometheus/latest/querying/api/
  */
@@ -35,10 +36,23 @@ export interface PromSample {
     value: number;
 }
 
-interface RequestOptions {
+/** One alerting rule */
+export interface AlertRule {
+    /** Name of the alert */
+    name: string;
+    /** The severity label; empty if the rule has none */
+    severity: string;
+}
+
+/** Options of one HTTP GET request */
+export interface RequestOptions {
+    /** Query parameters */
     params?: Record<string, string>;
+    /** Basic auth credentials */
     auth?: { username: string; password: string };
+    /** Timeout in milliseconds */
     timeout: number;
+    /** HTTPS agent with custom TLS settings, if any */
     httpsAgent?: https.Agent;
 }
 
@@ -68,6 +82,14 @@ function isEnvelope(data: unknown): data is PromEnvelope {
 
 function isVectorEntry(entry: unknown): entry is PromVectorEntry {
     return typeof entry === "object" && entry !== null && Array.isArray((entry as PromVectorEntry).value);
+}
+
+function toAlertRule(rule: unknown): AlertRule | undefined {
+    const { type, name, labels } = (rule ?? {}) as { type?: unknown; name?: unknown; labels?: { severity?: unknown } };
+    if (type !== "alerting" || typeof name !== "string") {
+        return undefined;
+    }
+    return { name, severity: typeof labels?.severity === "string" ? labels.severity : "" };
 }
 
 /** Client for the read endpoints of one Prometheus server */
@@ -137,6 +159,18 @@ export class PrometheusClient {
             return Promise.reject(new Error(`Invalid label name: "${label}"`));
         }
         return this.stringList(`/api/v1/label/${encodeURIComponent(label)}/values`, this.matchParams(metric));
+    }
+
+    /** Returns the alerting rules of all rule groups */
+    public async alertRules(): Promise<AlertRule[]> {
+        const data = (await this.request("/api/v1/rules", { type: "alert" })) as { groups?: unknown } | undefined;
+        if (!Array.isArray(data?.groups)) {
+            throw new Error("Unexpected response from /api/v1/rules: expected rule groups");
+        }
+        return data.groups
+            .flatMap((group: { rules?: unknown }) => (Array.isArray(group?.rules) ? group.rules : []))
+            .map(toAlertRule)
+            .filter(rule => rule !== undefined);
     }
 
     private matchParams(metric?: string): Record<string, string> | undefined {

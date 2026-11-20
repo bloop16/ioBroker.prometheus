@@ -23,6 +23,8 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
 ));
 var http = __toESM(require("node:http"));
 var utils = __toESM(require("@iobroker/adapter-core"));
+var import_alertmanager_client = require("./lib/alertmanager-client");
+var import_alertmanager_poller = require("./lib/alertmanager-poller");
 var import_query_builder = require("./lib/query-builder");
 var import_exporter = require("./lib/exporter");
 var import_prometheus_client = require("./lib/prometheus-client");
@@ -31,6 +33,7 @@ var import_source_config = require("./lib/source-config");
 const DEFAULT_REQUEST_TIMEOUT_SEC = 10;
 const MAX_DROPDOWN_ENTRIES = 2e3;
 const MAX_STARTUP_JITTER_MS = 5e3;
+const ALERTMANAGER_HEALTH_KEY = import_alertmanager_poller.ALERTMANAGER_CHANNEL;
 function escapeHtml(value) {
   return value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }
@@ -38,11 +41,12 @@ class Prometheus extends utils.Adapter {
   pollIntervals = [];
   startupTimeouts = [];
   isShuttingDown = false;
-  /** Health of each source (by target path), used for info.connection */
+  /** Health of each source (by target path) and the Alertmanager, used for info.connection */
   sourceHealth = /* @__PURE__ */ new Map();
   /** Current values of all states exported via the /metrics endpoint */
   registry = new import_exporter.MetricsRegistry();
   exporterServer;
+  alertmanagerPoller;
   /** Ids of the states currently exported */
   exportedIds = /* @__PURE__ */ new Set();
   /** Number of /metrics scrapes since adapter start */
@@ -81,11 +85,21 @@ class Prometheus extends utils.Adapter {
       return;
     }
     if (this.config.allowInsecureTls) {
-      this.log.warn("TLS certificate verification is disabled - connections to Prometheus are not protected");
+      this.log.warn(
+        "TLS certificate verification is disabled - connections to Prometheus and Alertmanager are not protected"
+      );
     }
     const { sources, errors } = (0, import_source_config.normalizeSources)(this.config.sources, this.config.url);
     for (const error of errors) {
       this.log.warn(`Ignoring misconfigured source - ${error}`);
+    }
+    for (const source of sources) {
+      this.sourceHealth.set(source.targetPath, false);
+    }
+    try {
+      await this.setupAlertmanager();
+    } catch (error) {
+      this.log.error(`Failed to start the Alertmanager polling: ${this.errorText(error)}`);
     }
     if (sources.length === 0) {
       this.log.info("No (valid) Prometheus sources configured. Please configure sources in the Admin UI.");
@@ -96,9 +110,30 @@ class Prometheus extends utils.Adapter {
         await this.ensureSourceObjects(source);
       } catch (error) {
         this.log.error(`Failed to create objects for "${source.name}": ${this.errorText(error)}`);
+        this.sourceHealth.delete(source.targetPath);
         continue;
       }
       this.startPolling(source);
+    }
+  }
+  /** Starts polling the Alertmanager, or removes its states when it is disabled */
+  async setupAlertmanager() {
+    var _a;
+    if (!this.config.alertmanagerEnabled) {
+      if (await this.getObjectAsync(import_alertmanager_poller.ALERTMANAGER_CHANNEL)) {
+        await this.delObjectAsync(import_alertmanager_poller.ALERTMANAGER_CHANNEL, { recursive: true });
+      }
+      return;
+    }
+    this.alertmanagerPoller = await (0, import_alertmanager_poller.startAlertmanagerPoller)(
+      this,
+      this.config,
+      this.requestTimeoutMs(),
+      (healthy) => this.setHealth(ALERTMANAGER_HEALTH_KEY, healthy),
+      this.httpsAgent
+    );
+    if (this.isShuttingDown) {
+      (_a = this.alertmanagerPoller) == null ? void 0 : _a.stop();
     }
   }
   /**
@@ -186,7 +221,7 @@ class Prometheus extends utils.Adapter {
     const { source } = polling;
     try {
       const samples = await polling.client.instantQuery(source.query);
-      this.setSourceHealth(source, true);
+      this.setHealth(source.targetPath, true);
       try {
         await this.writeSamples(source, samples);
         await this.setState(`${source.targetPath}.error`, "", true);
@@ -200,7 +235,7 @@ class Prometheus extends utils.Adapter {
       const message = this.errorText(error);
       this.log.warn(`Polling "${source.name}" failed: ${message}`);
       await this.setState(`${source.targetPath}.error`, message, true);
-      this.setSourceHealth(source, false);
+      this.setHealth(source.targetPath, false);
     } finally {
       polling.inFlight = false;
     }
@@ -259,13 +294,16 @@ class Prometheus extends utils.Adapter {
     }
   }
   /**
-   * Tracks per-source health and aggregates it into info.connection
+   * Tracks the health of one polled target and aggregates it into info.connection
    *
-   * @param source - The validated source configuration
+   * @param key - Target path of the source, or the Alertmanager key
    * @param healthy - Whether the last poll succeeded
    */
-  setSourceHealth(source, healthy) {
-    this.sourceHealth.set(source.targetPath, healthy);
+  setHealth(key, healthy) {
+    if (this.isShuttingDown) {
+      return;
+    }
+    this.sourceHealth.set(key, healthy);
     const allHealthy = [...this.sourceHealth.values()].every((value) => value);
     void this.setState("info.connection", this.sourceHealth.size > 0 && allHealthy, true);
   }
@@ -295,6 +333,9 @@ class Prometheus extends utils.Adapter {
       switch (obj.command) {
         case "testConnection":
           await this.testConnection(obj, message, (0, import_tls_options.tlsSettingsFromMessage)(raw));
+          break;
+        case "testAlertmanager":
+          await this.testAlertmanagerConnection(obj, message, (0, import_tls_options.tlsSettingsFromMessage)(raw));
           break;
         case "getMetricNames":
           this.respond(obj, await this.listForDropdown(message, (client) => client.metricNames()));
@@ -340,7 +381,7 @@ class Prometheus extends utils.Adapter {
       this.log.warn(`Command ${obj.command} failed: ${text}`);
       if (obj.command === "previewQuery" || obj.command === "describeMetric") {
         this.respond(obj, { text: `Error: ${text}` });
-      } else if (obj.command === "testConnection") {
+      } else if (obj.command === "testConnection" || obj.command === "testAlertmanager") {
         this.respond(obj, { error: text });
       } else {
         this.respond(obj, []);
@@ -355,20 +396,49 @@ class Prometheus extends utils.Adapter {
    * @param tls - Unsaved TLS settings; undefined = use the saved ones
    */
   async testConnection(obj, message, tls) {
-    const oneOffAgent = tls ? (0, import_tls_options.buildHttpsAgent)(tls) : void 0;
-    try {
-      const client = this.clientForUrl(
-        message.url,
-        message.username,
-        message.password,
-        tls ? oneOffAgent : this.httpsAgent
-      );
+    await this.withRequestAgent(tls, async (httpsAgent) => {
+      const client = this.clientForUrl(message.url, message.username, message.password, httpsAgent);
       if (!client) {
         this.respond(obj, { error: "Invalid Prometheus URL (expected e.g. http://host:9090)" });
         return;
       }
       await client.labelNames();
       this.respond(obj, { result: "connected" });
+    });
+  }
+  /**
+   * Tests the Alertmanager connection with the (possibly unsaved) values of the Admin UI
+   *
+   * @param obj - The original Admin UI message
+   * @param message - Cleaned message payload
+   * @param tls - Unsaved TLS settings; undefined = use the saved ones
+   */
+  async testAlertmanagerConnection(obj, message, tls) {
+    await this.withRequestAgent(tls, async (httpsAgent) => {
+      const result = await (0, import_alertmanager_client.testAlertmanager)({
+        url: message.url || this.config.alertmanagerUrl,
+        timeoutMs: this.requestTimeoutMs(),
+        username: message.username || void 0,
+        password: message.password || void 0,
+        httpsAgent
+      });
+      this.respond(obj, result);
+    });
+  }
+  /**
+   * Runs an Admin UI request with the HTTPS agent for the given TLS settings.
+   * Unsaved settings get a one-off agent that is destroyed afterwards.
+   *
+   * @param tls - Unsaved TLS settings; undefined = use the agent of the saved settings
+   * @param request - The request to run
+   */
+  async withRequestAgent(tls, request) {
+    if (!tls) {
+      return request(this.httpsAgent);
+    }
+    const oneOffAgent = (0, import_tls_options.buildHttpsAgent)(tls);
+    try {
+      await request(oneOffAgent);
     } finally {
       oneOffAgent == null ? void 0 : oneOffAgent.destroy();
     }
@@ -693,7 +763,7 @@ iobroker_exporter_exported_states ${this.registry.size}
    * @param callback - Callback function
    */
   onUnload(callback) {
-    var _a;
+    var _a, _b;
     this.isShuttingDown = true;
     try {
       for (const timeout of this.startupTimeouts) {
@@ -704,13 +774,14 @@ iobroker_exporter_exported_states ${this.registry.size}
         this.clearInterval(interval);
       }
       this.pollIntervals = [];
+      (_a = this.alertmanagerPoller) == null ? void 0 : _a.stop();
       if (this.exporterServer) {
         this.exporterServer.close();
         this.exporterServer = void 0;
       }
       this.registry.clear();
       this.exportedIds.clear();
-      (_a = this.httpsAgent) == null ? void 0 : _a.destroy();
+      (_b = this.httpsAgent) == null ? void 0 : _b.destroy();
       this.httpsAgent = void 0;
       callback();
     } catch (error) {

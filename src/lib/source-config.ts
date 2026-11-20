@@ -160,7 +160,13 @@ export function collectFilters(raw: RawSourceConfig): QueryFilter[] {
     return filters;
 }
 
-function clampPollIntervalMs(pollInterval: unknown): number {
+/**
+ * Clamps a poll interval from the configuration into the allowed range
+ *
+ * @param pollInterval - The configured interval in seconds
+ * @returns The interval in milliseconds
+ */
+export function clampPollIntervalMs(pollInterval: unknown): number {
     const parsed = Number(pollInterval);
     const seconds = Number.isFinite(parsed)
         ? Math.min(Math.max(parsed, MIN_POLL_INTERVAL_SEC), MAX_POLL_INTERVAL_SEC)
